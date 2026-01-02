@@ -1,291 +1,435 @@
-# Online Examination System (ASP.NET Web Forms) — Code-Derived Repository Documentation
+# Online Examination System (ASP.NET Web Forms) — Repository Code Documentation
 
 ## Scope and evidence policy
 
-This document describes the repository strictly based on code and configuration files present in the repo. Every behavioral statement is tied to a concrete file path and, where applicable, a symbol or method name. When the code is incomplete or contradictory, that is explicitly stated rather than inferred.
+This document is regenerated strictly from the repository’s code and configuration files in `Online-Examination-System-7216/`. It documents only what is implemented in this repository (not what is typical for ASP.NET projects). Every major statement is traceable to concrete file paths and code identifiers.
 
-Primary implementation lives under `Online-Examination-System-7216/OnlineExamSystem/` as a classic ASP.NET Web Forms application targeting .NET Framework 4.8 (`Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj`).
+A large portion of this application’s logic is implemented in ASP.NET Web Forms “page endpoints” (`.aspx` + `.aspx.cs` code-behind). There are no Web API controllers, no REST routes, and no background/scheduled jobs implemented in the code that was inspected.
 
-## Project purpose and functional scope
+## Repository purpose and high-level behavior
 
-The repository implements an online examination system where:
+The repository contains a monolithic ASP.NET Web Forms application that supports two user roles:
 
-1. Students can register and log in.
-2. Students can start and take MCQ and theory exams.
-3. MCQ exams are auto-scored and results are stored; theory exams are submitted for later manual marking by an admin/teacher workflow.
-4. Students can view a leaderboard and their profile.
+1. Students can register, log in, start exams, take MCQ exams, submit theory answers, view their MCQ results, and view leaderboards.
+2. Teachers/Admins (implemented as a hardcoded “Admin/Admin” credential) can access an admin panel to set exams and questions and to evaluate theory answer sheets via an admin queue.
 
-This scope is visible both in the high-level README (`Online-Examination-System-7216/README.md`) and in the concrete page-level code-behind implementation for login/registration/exams/queue/marking (for example: `LoginPage.aspx.cs`, `SignUpPage.aspx.cs`, `StartExam.aspx.cs`, `MCQExam.aspx.cs`, `TheoryExam.aspx.cs`, `ShowAns.aspx.cs`).
+The implemented entry points and user flows are page-based and rely heavily on ASP.NET `Session` variables and SQL Server tables.
 
-## Repository layout and main artifacts
+Evidence:
+- Student and teacher login behavior: `OnlineExamSystem/LoginPage.aspx.cs`, method `loginButton_Click`.
+- Student registration: `OnlineExamSystem/SignUpPage.aspx.cs`, method `signUpB_Click`.
+- Student exam selection and starting: `OnlineExamSystem/StartExam.aspx.cs`, methods `Page_Load`, `GridView1_SelectedIndexChanged`, `GridView2_SelectedIndexChanged`.
+- MCQ exam taking and submission: `OnlineExamSystem/MCQExam.aspx.cs`, methods `Page_Load`, `submitB_Click`, `Timer1_Tick`.
+- Theory exam taking and submission: `OnlineExamSystem/TheoryExam.aspx.cs`, methods `Page_Load`, `submitB_Click`, `Timer1_Tick`.
+- MCQ result computation/persistence: `OnlineExamSystem/ExamResult.aspx.cs`, method `Page_Load`.
+- Admin theory answer evaluation: `OnlineExamSystem/AdminQueue.aspx.cs`, `OnlineExamSystem/AdminCourseQueue.aspx.cs`, `OnlineExamSystem/ShowAns.aspx.cs`.
 
-### Solution and project
+## Solution and project layout
 
-The repository contains one Visual Studio solution and one Web Forms project:
+### Top-level layout
 
-- `Online-Examination-System-7216/OnlineExamSystem.sln`
-- `Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj`
+- `OnlineExamSystem.sln`: Visual Studio solution.
+- `OnlineExamSystem/OnlineExamSystem.csproj`: Web application project targeting .NET Framework 4.8.
+- `OnlineExamSystem/*.aspx` and `OnlineExamSystem/*.aspx.cs`: Web Forms pages and their code-behind.
+- `OnlineExamSystem/Web.config`: runtime configuration (compilation and connection strings).
+- `database-script/Online-Examination-System-Databse-Script.sql`: SQL Server database schema script.
 
-The project is an ASP.NET Web Application project (`ProjectTypeGuids` includes the WebApplication GUID) with output type `Library` and target framework `v4.8` (`OnlineExamSystem.csproj`).
+Evidence:
+- Project and target framework: `OnlineExamSystem/OnlineExamSystem.csproj` (`<TargetFrameworkVersion>v4.8</TargetFrameworkVersion>`).
+- Web.config: `OnlineExamSystem/Web.config`.
+- DB script: `database-script/Online-Examination-System-Databse-Script.sql`.
 
-### Web Forms pages (UI + server-side logic)
+### Module / namespace structure
 
-The application is implemented as multiple `.aspx` pages with code-behind `.aspx.cs` handlers. The `.csproj` enumerates the pages as `Content` and the code-behind as `Compile` items.
+All code-behind classes are in a single namespace:
+- `namespace OnlineExamSystem` in each `.aspx.cs` file.
 
-Notable pages with server-side logic (non-exhaustive; derived from `.csproj` and code reads):
+There is no separate domain layer, repository layer, or service layer in the inspected source. Database access is performed directly in pages using `System.Data.SqlClient` (e.g., `SqlConnection`, `SqlCommand`, `SqlDataAdapter`, `SqlDataReader`).
 
-- Authentication & entry:
-  - `Online-Examination-System-7216/OnlineExamSystem/LoginPage.aspx` and `LoginPage.aspx.cs`
-  - `Online-Examination-System-7216/OnlineExamSystem/SignUpPage.aspx` and `SignUpPage.aspx.cs`
+Evidence:
+- Direct SQL access usage: `OnlineExamSystem/LoginPage.aspx.cs`, `SignUpPage.aspx.cs`, `StartExam.aspx.cs`, `MCQExam.aspx.cs`, `TheoryExam.aspx.cs`, `ExamResult.aspx.cs`, `ShowAns.aspx.cs`, `MCQSet.aspx.cs`, `TheorySet.aspx.cs`, `Leaderboard.aspx.cs`, `AdminCourseQueue.aspx.cs`.
 
-- Student features:
-  - `Dashboard.aspx` and `Dashboard.aspx.cs` (navigation only; see `.csproj`, not read in this task)
-  - `StartExam.aspx` and `StartExam.aspx.cs`
-  - `MCQExam.aspx` and `MCQExam.aspx.cs`
-  - `TheoryExam.aspx` and `TheoryExam.aspx.cs`
-  - `ExamResult.aspx` and `ExamResult.aspx.cs`
-  - `Leaderboard.aspx` and `Leaderboard.aspx.cs`
-  - `UserProfile.aspx` and `UserProfile.aspx.cs`
-  - `TakenCourses.aspx` and `TakenCourses.aspx.cs` (navigation only; not read in this task)
+## Architecture diagrams (evidence-backed)
 
-- Admin/teacher features:
-  - `AdminPanel.aspx` and `AdminPanel.aspx.cs`
-  - `SetExam.aspx` and `SetExam.aspx.cs` (navigation only; not read in this task)
-  - `MCQSet.aspx` and `MCQSet.aspx.cs` (admin creates MCQ questions/exams)
-  - `TheorySet.aspx` and `TheorySet.aspx.cs` (admin creates theory questions/exams)
-  - `AdminQueue.aspx` and `AdminQueue.aspx.cs` (admin selects course queue)
-  - `AdminCourseQueue.aspx` and `AdminCourseQueue.aspx.cs` (admin selects a student’s answer sheet to mark)
-  - `ShowAns.aspx` and `ShowAns.aspx.cs` (admin views answers and submits marks)
-  - `AdminLeaderboard.aspx` and `AdminLeaderboard.aspx.cs` (not read in this task; present in `.csproj`)
+### System context diagram
 
-- PDF page (currently no active behavior):
-  - `DownloadPdf.aspx` and `DownloadPdf.aspx.cs` (code contains commented-out iTextSharp usage; currently does nothing)
-
-### Static assets and styling
-
-- Bootstrap CSS under `Online-Examination-System-7216/OnlineExamSystem/CSS/bootstrap.css` (Bootswatch "morph" theme per file header).
-- Images under `Online-Examination-System-7216/OnlineExamSystem/Images/` and `Online-Examination-System-7216/images/` (screenshots in root README).
-
-### Database scripts
-
-- `Online-Examination-System-7216/database-script/Online-Examination-System-Databse-Script.sql` (SQL Server database setup script; provided as a binary/base64-encoded file in this environment view, but it is clearly a SQL Server schema script and includes table names that match the code’s SQL statements.)
-- `Online-Examination-System-7216/database-script/README.md`
-
-## Build system, dependencies, and runtime prerequisites
-
-### Target framework and compiler/runtime config
-
-- The application targets `.NET Framework 4.8` (`TargetFrameworkVersion` in `OnlineExamSystem.csproj`).
-- Web compilation is configured in `Web.config`:
-  - `<compilation debug="true" targetFramework="4.8"/>`
-  - `<httpRuntime targetFramework="4.5.2"/>`
-
-The `system.codedom` section configures Roslyn CodeDom providers for C# and VB via `Microsoft.CodeDom.Providers.DotNetCompilerPlatform` (1.0.0.0) in `Web.config`.
-
-### NuGet packages
-
-Packages are declared in `Online-Examination-System-7216/OnlineExamSystem/packages.config`:
-
-- `Microsoft.CodeDom.Providers.DotNetCompilerPlatform` version `1.0.0` (`targetFramework="net452"`)
-- `Microsoft.Net.Compilers` version `1.0.0` (`developmentDependency="true"`)
-
-The `.csproj` imports these packages from the `packages/` folder and will fail the build if the packages are missing (`EnsureNuGetPackageBuildImports` target in `OnlineExamSystem.csproj`). The repo includes a `packages/` directory with those packages.
-
-### Other referenced assemblies
-
-The `.csproj` references include:
-
-- `CrystalDecisions.Web, Version=13.0.4000.0` (no hint path in project file; runtime availability depends on environment)
-- Standard .NET assemblies: `System.Web`, `System.Data`, `System.Configuration`, etc.
-
-Evidence: `Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj` `<Reference>` items.
-
-## Configuration model
-
-### web.config
-
-`Online-Examination-System-7216/OnlineExamSystem/Web.config` contains:
-
-- `system.web` compilation/runtime framework settings
-- `system.codedom` compiler provider settings
-- `connectionStrings`:
-
-```xml
-<connectionStrings>
-  <add name="dbconnection" connectionString="your-database-connection-string"/>
-  <add name="OnlineExamConnectionString" connectionString="your-database-connection-string" providerName="System.Data.SqlClient"/>
-</connectionStrings>
-```
-
-However, the code-behind files largely do **not** use `ConfigurationManager.ConnectionStrings[...]` or `WebConfigurationManager.ConnectionStrings[...]`. Instead, many pages hardcode a string literal:
-
-- `"your-database-connection-string"` appears repeatedly in:
-  - `LoginPage.aspx.cs`
-  - `SignUpPage.aspx.cs`
-  - `StartExam.aspx.cs`
-  - `MCQExam.aspx.cs`
-  - `TheoryExam.aspx.cs`
-  - `ExamResult.aspx.cs`
-  - `ShowAns.aspx.cs`
-  - `MCQSet.aspx.cs`
-  - `TheorySet.aspx.cs`
-  - `AdminCourseQueue.aspx.cs`
-  - `Leaderboard.aspx.cs`
-
-One notable exception is `UserProfile.aspx.cs`, which hardcodes a concrete SQL Server connection string including host, database, username and password:
-
-```csharp
-string CS = "Data Source=DESKTOP-JT5TE1G\\SQLEXPRESS;Initial Catalog=OnlineExam;Persist Security Info=True;User ID=sa;Password=369@saikat";
-```
-
-Evidence: `Online-Examination-System-7216/OnlineExamSystem/UserProfile.aspx.cs` in `Page_Load`.
-
-### Environment variables
-
-No `.env` is provided for this container per task metadata, and no code evidence was found in read files for `Environment.GetEnvironmentVariable` usage. Therefore, configuration appears to be expected via editing connection string literals and/or `Web.config`.
-
-### Build configuration transforms
-
-Transform templates exist:
-
-- `Online-Examination-System-7216/OnlineExamSystem/Web.Debug.config`
-- `Online-Examination-System-7216/OnlineExamSystem/Web.Release.config`
-
-Both are stock transform examples; `Web.Release.config` removes the `debug` attribute from `<compilation>`, but neither defines any actual connection string transformations in this repository version.
-
-## Runtime architecture (derived from code)
-
-### System context
-
-The system is a monolithic web application serving HTML pages (Web Forms) to browsers and interacting with a SQL Server database via ADO.NET `System.Data.SqlClient` from code-behind.
-
-#### Context diagram (derived from `*.aspx.cs` DB usage and `Web.config` provider)
+The system is a web application (ASP.NET Web Forms) that serves HTML pages to a user’s browser and connects to SQL Server.
 
 ```mermaid
 flowchart LR
-  U["User (Student or Teacher/Admin)"] -->|HTTP(S) requests| W["ASP.NET Web Forms app (OnlineExamSystem)"]
-  W -->|ADO.NET System.Data.SqlClient| DB["SQL Server database (OnlineExam)"]
+  U["User (Student or Teacher/Admin)\nBrowser-based UI"] --> W["ASP.NET Web Forms Application\nOnlineExamSystem (IIS/IIS Express)"]
+  W --> DB["SQL Server Database\nOnlineExam (schema in SQL script)"]
 ```
 
-**Derivation notes:**  
-The web app is the `OnlineExamSystem` project (`OnlineExamSystem.csproj`) and uses `SqlConnection`, `SqlCommand`, `SqlDataAdapter`, `SqlDataReader` across multiple pages (for example `LoginPage.aspx.cs`, `StartExam.aspx.cs`, `MCQExam.aspx.cs`, `TheoryExam.aspx.cs`, `ShowAns.aspx.cs`). The database is SQL Server because the provider is `System.Data.SqlClient` in `Web.config` and the code uses `System.Data.SqlClient`.
+Diagram mapping to code artifacts:
+- The “ASP.NET Web Forms Application” node corresponds to the set of Web Forms pages and code-behind under `OnlineExamSystem/` (for example `LoginPage.aspx` + `LoginPage.aspx.cs`).
+- The “SQL Server Database” node corresponds to the tables created by `database-script/Online-Examination-System-Databse-Script.sql` and accessed via `System.Data.SqlClient` in multiple pages (for example, `LoginPage.aspx.cs` queries `userInfo`).
 
-### Container/component diagram (page-centric components)
+### Container/component diagram (monolith)
 
-Because this is Web Forms, the main “components” are pages with code-behind methods that implement actions and transitions via `Server.Transfer(...)`.
+The web app is a single container with multiple page endpoints. Admin and student features are implemented as separate pages, not separate services.
 
 ```mermaid
 flowchart TB
-  subgraph Web["OnlineExamSystem (ASP.NET Web Forms)"]
-    LP["LoginPage.aspx (+ LoginPage.aspx.cs)"]
-    SU["SignUpPage.aspx (+ SignUpPage.aspx.cs)"]
-    DBR["Dashboard.aspx (+ Dashboard.aspx.cs)"]
-    SE["StartExam.aspx (+ StartExam.aspx.cs)"]
-    ME["MCQExam.aspx (+ MCQExam.aspx.cs)"]
-    TE["TheoryExam.aspx (+ TheoryExam.aspx.cs)"]
-    ER["ExamResult.aspx (+ ExamResult.aspx.cs)"]
-    LB["Leaderboard.aspx (+ Leaderboard.aspx.cs)"]
-    UP["UserProfile.aspx (+ UserProfile.aspx.cs)"]
-
-    AP["AdminPanel.aspx (+ AdminPanel.aspx.cs)"]
-    MS["MCQSet.aspx (+ MCQSet.aspx.cs)"]
-    TS["TheorySet.aspx (+ TheorySet.aspx.cs)"]
-    AQ["AdminQueue.aspx (+ AdminQueue.aspx.cs)"]
-    ACQ["AdminCourseQueue.aspx (+ AdminCourseQueue.aspx.cs)"]
-    SA["ShowAns.aspx (+ ShowAns.aspx.cs)"]
+  subgraph App["OnlineExamSystem (ASP.NET Web Forms)"]
+    Auth["Auth Pages\nLoginPage.aspx / SignUpPage.aspx"]
+    Student["Student Pages\nDashboard / StartExam / MCQExam / TheoryExam / ExamResult / Leaderboard / UserProfile / TakenCourses"]
+    Admin["Admin Pages\nAdminPanel / SetExam / MCQSet / TheorySet / EditExam / EditMCQ / EditTheory / AdminQueue / AdminCourseQueue / ShowAns / AdminLeaderboard"]
+    Auth --> Student
+    Auth --> Admin
+    Student --> DB["SQL Server"]
+    Admin --> DB
   end
-
-  DBX["SQL Server DB"]:::db
-
-  LP -->|Server.Transfer| SU
-  LP -->|Server.Transfer| DBR
-  LP -->|Server.Transfer| AP
-
-  SE -->|Server.Transfer| TE
-  SE -->|Server.Transfer| ME
-
-  ME -->|Server.Transfer| ER
-
-  AQ -->|Server.Transfer| ACQ
-  ACQ -->|Server.Transfer| SA
-
-  classDef db fill:#f6f6f6,stroke:#333,stroke-width:1px;
 ```
 
-**Derivation notes:**  
-Transfers are explicitly present in code-behind handlers:
+Diagram mapping to code artifacts:
+- “Auth Pages” maps to `OnlineExamSystem/LoginPage.aspx.cs` and `OnlineExamSystem/SignUpPage.aspx.cs`.
+- “Student Pages” maps to the student code-behind files, notably:
+  - `Dashboard.aspx.cs`, `StartExam.aspx.cs`, `MCQExam.aspx.cs`, `TheoryExam.aspx.cs`, `ExamResult.aspx.cs`, `Leaderboard.aspx.cs`, `UserProfile.aspx.cs`, `TakenCourses.aspx.cs`.
+- “Admin Pages” maps to the admin code-behind files, notably:
+  - `AdminPanel.aspx.cs`, `SetExam.aspx.cs`, `MCQSet.aspx.cs`, `TheorySet.aspx.cs`, `EditExam.aspx.cs`, `EditMCQ.aspx.cs`, `EditTheory.aspx.cs`, `AdminQueue.aspx.cs`, `AdminCourseQueue.aspx.cs`, `ShowAns.aspx.cs`, `AdminLeaderboard.aspx.cs`.
+- “SQL Server” maps to tables referenced from those pages, created by `database-script/Online-Examination-System-Databse-Script.sql`.
 
-- `LoginPage.signupB` transfers to `SignUpPage.aspx` (`LoginPage.aspx.cs`).
-- `LoginPage.loginButton_Click` transfers to `Dashboard.aspx` (student) or `AdminPanel.aspx` (teacher/admin hardcoded) (`LoginPage.aspx.cs`).
-- `StartExam.GridView1_SelectedIndexChanged` transfers to `TheoryExam.aspx`; `GridView2_SelectedIndexChanged` transfers to `MCQExam.aspx` (`StartExam.aspx.cs`).
-- `MCQExam.submitB_Click` transfers to `ExamResult.aspx` (`MCQExam.aspx.cs`).
-- `AdminQueue.aspx.cs` transfers to `AdminCourseQueue.aspx` via `GridView2_SelectedIndexChanged`.
-- `AdminCourseQueue.aspx.cs` transfers to `ShowAns.aspx` via `GridView1_SelectedIndexChanged`.
+### Module dependency diagram (code-level)
 
-### Database interaction style
+This repository primarily consists of UI pages; dependencies are from pages to .NET base libraries (Web Forms and SQL client). There is no internal library layer.
 
-The data access is implemented directly in page code-behind using dynamic SQL strings with concatenation and `SqlCommand`. There is no repository/ORM layer in the files inspected.
+```mermaid
+flowchart LR
+  Pages["Web Forms Pages (*.aspx.cs)\nNamespace: OnlineExamSystem"] --> WebForms["System.Web / System.Web.UI\n(Page lifecycle, Server.Transfer, Session)"]
+  Pages --> SqlClient["System.Data.SqlClient\n(SqlConnection/SqlCommand/SqlDataAdapter/SqlDataReader)"]
+  Pages --> Data["System.Data\n(DataTable)"]
+  SignUp["SignUpPage.aspx.cs"] --> IO["System.IO\n(FileUpload SaveAs)"]
+```
 
-Evidence examples:
-- `new SqlCommand("select count(*) from userInfo where id ='" + userTextBox.Text + "' ...", con);` in `LoginPage.loginButton_Click`.
-- Many `insert into ... VALUES('"+ value +"', ...)` in `SignUpPage.signUpB_Click`, `MCQSet.AddQB_Click`, `TheoryExam.submitB_Click`, `MCQExam.submitB_Click`, etc.
+Diagram mapping to code artifacts:
+- `Pages` represents all `.aspx.cs` files under `OnlineExamSystem/`.
+- `WebForms` is evidenced by `System.Web.UI.Page` inheritance and methods like `Server.Transfer(...)` and `Session[...]` in nearly all pages (example: `Dashboard.aspx.cs`).
+- `SqlClient` is evidenced by `using System.Data.SqlClient;` and direct `SqlConnection` usage (example: `MCQExam.aspx.cs`).
+- `IO` is evidenced by `FileUpload1.SaveAs(...)` in `SignUpPage.aspx.cs`.
 
-## Data model (derived from code SQL statements and DB script table names)
+## Public interfaces (implemented entry points)
 
-The schema file is present at `Online-Examination-System-7216/database-script/Online-Examination-System-Databse-Script.sql` and appears to define tables referenced in the code. Even without decoding the full script text here, the table/column usage is unambiguous from the application SQL statements.
+### HTTP UI endpoints (page-based)
 
-### Tables referenced by the application
+This application exposes Web Forms pages (not REST endpoints). Navigation is done via `Server.Transfer("X.aspx", true)`.
 
-From explicit SQL strings in code-behind:
+The following pages are directly referenced in code-behind as navigation targets:
+
+#### Authentication
+- `LoginPage.aspx`
+  - Code-behind: `OnlineExamSystem/LoginPage.aspx.cs`
+  - Key handlers:
+    - `signupB(object sender, EventArgs e)`: transfers to `SignUpPage.aspx`.
+    - `loginButton_Click(object sender, EventArgs e)`: authenticates Student vs Teacher and transfers to `Dashboard.aspx` or `AdminPanel.aspx`.
+
+- `SignUpPage.aspx`
+  - Code-behind: `OnlineExamSystem/SignUpPage.aspx.cs`
+  - Key handlers:
+    - `loginB_Click(...)`: transfers to `LoginPage.aspx`.
+    - `signUpB_Click(...)`: inserts user record into `userInfo`, saves uploaded image, transfers to `LoginPage.aspx`.
+
+#### Student pages
+- `Dashboard.aspx` (`OnlineExamSystem/Dashboard.aspx.cs`)
+  - `profileB_Click` -> `UserProfile.aspx`
+  - `LeaderboardB_Click` -> `Leaderboard.aspx`
+  - `sExamB_Click` -> `StartExam.aspx`
+  - `logoutB_Click` -> `LoginPage.aspx`
+
+- `StartExam.aspx` (`OnlineExamSystem/StartExam.aspx.cs`)
+  - `Page_Load` validates `Session["_ID"]` and loads course list based on DB `userInfo.semester`.
+  - `GridView1_SelectedIndexChanged` transfers to `TheoryExam.aspx` if not already taken.
+  - `GridView2_SelectedIndexChanged` transfers to `MCQExam.aspx` if not already taken.
+
+- `MCQExam.aspx` (`OnlineExamSystem/MCQExam.aspx.cs`)
+  - `Page_Load` loads questions 1..5 from `mcqQS` for the selected course (`Session["_Course"]`).
+  - `submitB_Click` inserts a row into `mcqTaken` and transfers to `ExamResult.aspx`.
+
+- `TheoryExam.aspx` (`OnlineExamSystem/TheoryExam.aspx.cs`)
+  - `Page_Load` loads a sequence of 5 questions from `theoryQS` starting at `Session["_qNo"]` and sets a timer.
+  - `submitB_Click` writes answers into `theoryAns`, enqueues for admin evaluation (`theoryCourseQueue` and `theoryQueue`), inserts into `theoryTaken`, then transfers to `Dashboard.aspx`.
+
+- `ExamResult.aspx` (`OnlineExamSystem/ExamResult.aspx.cs`)
+  - Displays mark stored in `Session["_tMark"]`.
+  - Updates `userInfo.no_of_exam`, `userInfo.total_mark`, and `userInfo.abc` (average) for the current user.
+  - Displays the questions/tags/answers from `Session["_qs1"...]`, `Session["_tag1"...]`, `Session["_ans1"...]`.
+
+- `Leaderboard.aspx` (`OnlineExamSystem/Leaderboard.aspx.cs`)
+  - Reads current user’s `semester` and stores it in `Session["_Year"]`.
+  - Logout sets `Session["_ID"] = "not"` and transfers to login (note this differs from other pages that just transfer).
+
+- `UserProfile.aspx` (`OnlineExamSystem/UserProfile.aspx.cs`)
+  - Loads user profile fields from `userInfo`.
+  - `coursesB_Click` transfers to `TakenCourses.aspx`.
+
+- `TakenCourses.aspx` (`OnlineExamSystem/TakenCourses.aspx.cs`)
+  - Navigation only (home/profile/leaderboard/logout).
+
+#### Admin pages
+- `AdminPanel.aspx` (`OnlineExamSystem/AdminPanel.aspx.cs`)
+  - `profileB_Click` -> `AdminQueue.aspx`
+  - `LeaderboardB_Click` -> `AdminLeaderboard.aspx`
+  - `sExamB_Click` -> `SetExam.aspx`
+  - `eExamB_Click` -> `EditExam.aspx`
+  - `logoutB_Click` -> `LoginPage.aspx`
+
+- `SetExam.aspx` (`OnlineExamSystem/SetExam.aspx.cs`)
+  - `theoryB_Click` -> `TheorySet.aspx`
+  - `mcqB_Click` -> `MCQSet.aspx`
+
+- `MCQSet.aspx` (`OnlineExamSystem/MCQSet.aspx.cs`)
+  - `AddQB_Click` inserts into `mcqQS` and then computes the next question number by counting rows in `mcqQS`.
+  - `setB_Click` increments exam number by counting rows in `mcqCourseDetail` for that course, then inserts into `mcqCourseDetail`.
+
+- `TheorySet.aspx` (`OnlineExamSystem/TheorySet.aspx.cs`)
+  - `AddQB_Click` inserts into `theoryQS` and then computes the next question number by counting rows in `theoryQS`.
+  - `setB_Click` increments exam number by counting rows in `theoryCourseDetail` and inserts into `theoryCourseDetail`.
+
+- `EditExam.aspx` (`OnlineExamSystem/EditExam.aspx.cs`)
+  - Links to `EditTheory.aspx` and `EditMCQ.aspx` via `Server.Transfer`.
+
+- `EditMCQ.aspx` (`OnlineExamSystem/EditMCQ.aspx.cs`)
+  - Populates course dropdowns based on semester selection.
+  - `searchB_Click` stores selected course to `Session["_CRS1"]`.
+  - This file does not implement database edits itself; any editing behavior would be in markup or other code not present here.
+
+- `EditTheory.aspx` (`OnlineExamSystem/EditTheory.aspx.cs`)
+  - Similar to EditMCQ; `searchB_Click` stores course to `Session["_CRS"]`.
+  - No implemented DB update logic in this code-behind file.
+
+- `AdminQueue.aspx` (`OnlineExamSystem/AdminQueue.aspx.cs`)
+  - `GridView2_SelectedIndexChanged` stores selected course ID into `Session["_crsID1"]` and transfers to `AdminCourseQueue.aspx`.
+
+- `AdminCourseQueue.aspx` (`OnlineExamSystem/AdminCourseQueue.aspx.cs`)
+  - `Page_Load` may delete a course from `theoryQueue` if the per-course student queue (`theoryCourseQueue`) is empty, using `Session["_checkCID"]`.
+  - `GridView1_SelectedIndexChanged` stores `Session["_stID"]` and `Session["_crsID"]`, then transfers to `ShowAns.aspx`.
+
+- `ShowAns.aspx` (`OnlineExamSystem/ShowAns.aspx.cs`)
+  - Loads theory answers from `theoryAns` for `Session["_stID"]` and `Session["_crsID"]`.
+  - `submitB_Click` updates the student’s theory mark and approval state and removes the student from `theoryCourseQueue`.
+
+- `AdminLeaderboard.aspx` (`OnlineExamSystem/AdminLeaderboard.aspx.cs`)
+  - Search button stores selected semester in `Session["_Year1"]`.
+  - Database binding code is present but commented out in this code-behind.
+
+- `DownloadPdf.aspx` (`OnlineExamSystem/DownloadPdf.aspx.cs`)
+  - The PDF-generation code using iTextSharp is entirely commented out; no active PDF generation behavior is implemented.
+
+## Critical flows (sequence diagrams with code mapping)
+
+### Student login flow (Student account type)
+
+```mermaid
+sequenceDiagram
+  participant B as "Browser"
+  participant L as "LoginPage.aspx.cs"
+  participant DB as "SQL Server"
+
+  B->>L: "loginButton_Click(...)"
+  L->>DB: "select count(*) from userInfo where id=... and password=..."
+  DB-->>L: "count result (DataTable dt)"
+  alt count == 1
+    L->>L: "Session['_ID']=userTextBox.Text"
+    L-->>B: "Server.Transfer('Dashboard.aspx', true)"
+  else count != 1
+    L-->>B: "Response.Write alert 'User ID or Password do not match!'"
+  end
+```
+
+Diagram mapping to code artifacts:
+- Handler: `OnlineExamSystem/LoginPage.aspx.cs`, method `loginButton_Click`.
+- Query: `SqlCommand cmd = new SqlCommand("select count(*) from userInfo ...", con);`.
+- Session: `Session["_ID"] = userTextBox.Text;`.
+- Navigation: `Server.Transfer("Dashboard.aspx", true);`.
+
+Important code snippet (authentication logic with file path and role):
+```csharp
+// File: OnlineExamSystem/LoginPage.aspx.cs
+// Symbol: LoginPage.loginButton_Click
+if (AccountTypeDB.SelectedItem.Text == "Student")
+{
+    string CS = "your-database-connection-string";
+    SqlConnection con = new SqlConnection(CS);
+    con.Open();
+    SqlCommand cmd = new SqlCommand(
+        "select count(*) from userInfo where id ='" + userTextBox.Text +
+        "' and password='" + passTextBox.Text + "' ", con);
+
+    // ...
+    if (dt.Rows[0][0].ToString() == "1")
+    {
+        Session["_ID"] = userTextBox.Text;
+        Server.Transfer("Dashboard.aspx", true);
+    }
+}
+```
+
+### Teacher/Admin login flow (hardcoded)
+
+```mermaid
+sequenceDiagram
+  participant B as "Browser"
+  participant L as "LoginPage.aspx.cs"
+
+  B->>L: "loginButton_Click(...) with AccountTypeDB='Teacher'"
+  alt userTextBox == 'Admin' and passTextBox == 'Admin'
+    L-->>B: "Server.Transfer('AdminPanel.aspx', true)"
+  else
+    L-->>B: "Response.Write alert 'User ID or Password do not match!'"
+  end
+```
+
+Diagram mapping:
+- `OnlineExamSystem/LoginPage.aspx.cs`, method `loginButton_Click` branch `else if (AccountTypeDB.SelectedItem.Text == "Teacher")`.
+
+### Student starts an exam from StartExam grid and is prevented from retaking
+
+This flow is implemented twice (for theory and MCQ) using different tables.
+
+```mermaid
+sequenceDiagram
+  participant B as "Browser"
+  participant S as "StartExam.aspx.cs"
+  participant DB as "SQL Server"
+
+  B->>S: "GridView*_SelectedIndexChanged"
+  S->>S: "read examNo/courseID from selected row; studentID from Session['_ID']"
+  S->>DB: "select count(*) from theoryTaken or mcqTaken where studentID/courseID/examNo match"
+  DB-->>S: "count"
+  alt count >= 1
+    S-->>B: "alert 'You already take this exam!'"
+  else count == 0
+    S->>S: "compute start question index: xx=(examNo-1)*2+1; Session['_qNO']=xx"
+    S-->>B: "Server.Transfer('TheoryExam.aspx' or 'MCQExam.aspx', true)"
+  end
+```
+
+Diagram mapping:
+- Theory: `OnlineExamSystem/StartExam.aspx.cs`, method `GridView1_SelectedIndexChanged` uses table `theoryTaken`.
+- MCQ: `OnlineExamSystem/StartExam.aspx.cs`, method `GridView2_SelectedIndexChanged` uses table `mcqTaken`.
+- Question number math is implemented in both handlers.
+
+### MCQ exam submission and result
+
+```mermaid
+sequenceDiagram
+  participant B as "Browser"
+  participant M as "MCQExam.aspx.cs"
+  participant DB as "SQL Server"
+  participant R as "ExamResult.aspx.cs"
+
+  B->>M: "submitB_Click(...)"
+  M->>M: "compare selected answers vs Session['_ans1'..'_ans5'] and compute mark"
+  M->>M: "Session['_tMark']=mark"
+  M->>DB: "insert into mcqTaken(studentID,courseID,examNo,mark) values(..., '1', mark)"
+  DB-->>M: "insert ok"
+  M-->>B: "Server.Transfer('ExamResult.aspx', true)"
+  B->>R: "Page_Load"
+  R->>DB: "select * from userInfo where id=Session['_ID']"
+  R->>DB: "update userInfo set no_of_exam=..., total_mark=..., abc=... where id=..."
+  R-->>B: "render result with questions/tags/answers from Session"
+```
+
+Diagram mapping:
+- Mark computation and insert: `OnlineExamSystem/MCQExam.aspx.cs`, method `submitB_Click`.
+- Result persistence and average update: `OnlineExamSystem/ExamResult.aspx.cs`, method `Page_Load`.
+
+Note: `mcqTaken.examNo` is hardcoded as `"1"` in `MCQExam.submitB_Click`, even though exam selection passes an exam number earlier. This is a code-derived behavior.
+
+### Theory exam submission and admin evaluation queueing
+
+```mermaid
+sequenceDiagram
+  participant B as "Browser"
+  participant T as "TheoryExam.aspx.cs"
+  participant DB as "SQL Server"
+  participant AQ as "AdminCourseQueue.aspx.cs"
+  participant SA as "ShowAns.aspx.cs"
+
+  B->>T: "submitB_Click(...)"
+  T->>DB: "insert theoryAns rows for qsNo 1..5 (isAprove='No')"
+  T->>DB: "insert into theoryCourseQueue(student_ID,courseID)"
+  T->>DB: "insert into theoryQueue(courseID,courseName)"
+  T->>DB: "insert into theoryTaken(studentID,courseID,examNo)"
+  T-->>B: "Server.Transfer('Dashboard.aspx', true)"
+
+  Note over AQ: Admin later selects course and student to evaluate
+  AQ->>SA: "GridView1_SelectedIndexChanged -> Server.Transfer('ShowAns.aspx')"
+  SA->>DB: "select * from theoryAns for studentID/courseID and qsNo=1..5"
+  B->>SA: "submitB_Click(...) enters marks"
+  SA->>DB: "update theoryAns set mark=total, isAprove='Yes' where studentID/courseID"
+  SA->>DB: "delete from theoryCourseQueue where student_ID/courseID"
+  SA-->>B: "Server.Transfer('AdminCourseQueue.aspx', true)"
+```
+
+Diagram mapping:
+- Theory submission: `OnlineExamSystem/TheoryExam.aspx.cs`, method `submitB_Click`.
+- Admin selects student: `OnlineExamSystem/AdminCourseQueue.aspx.cs`, `GridView1_SelectedIndexChanged`.
+- Admin views and updates: `OnlineExamSystem/ShowAns.aspx.cs`, methods `Page_Load`, `submitB_Click`.
+
+Important code snippet (queueing behavior):
+```csharp
+// File: OnlineExamSystem/TheoryExam.aspx.cs
+// Symbol: TheoryExam.submitB_Click
+newcon = "insert into theoryCourseQueue (student_ID,courseID) VALUES('" + stID + "', '" + crsID + "')";
+cmd = new SqlCommand(newcon, con);
+cmd.ExecuteNonQuery();
+
+string courseNAME = getCourseName(crsID);
+newcon = "insert into theoryQueue (courseID, courseName) VALUES('" + crsID + "', '" + courseNAME + "')";
+cmd = new SqlCommand(newcon, con);
+cmd.ExecuteNonQuery();
+```
+
+## Data model (DB schema and application usage)
+
+### Source of truth
+
+The repository includes a SQL Server schema script:
+- `database-script/Online-Examination-System-Databse-Script.sql`
+
+The script content is stored in the repository and appears to include `CREATE TABLE` statements for tables that the application queries/inserts into. The runtime code references the following tables:
 
 - `userInfo`
-  - Used in: `LoginPage.aspx.cs`, `SignUpPage.aspx.cs`, `StartExam.aspx.cs`, `ExamResult.aspx.cs`, `Leaderboard.aspx.cs`, `UserProfile.aspx.cs`
-  - Columns referenced include: `id`, `password`, `semester`, `name`, `department`, `email`, `gender`, `fatherName`, `hall`, `image`, `no_of_exam`, `total_mark`, `abc`
+- `mcqQS`
+- `mcqTaken`
+- `mcqCourseDetail`
+- `theoryQS`
+- `theoryAns`
+- `theoryTaken`
+- `theoryCourseDetail`
+- `theoryCourseQueue`
+- `theoryQueue`
 
-- `mcqQS` (MCQ questions)
-  - Used in: `StartExam.aspx.cs`, `MCQExam.aspx.cs`, `MCQSet.aspx.cs`
-  - Columns referenced include: `course`, `qsNo`, `qs`, `op1`, `op2`, `op3`, `op4`, `ans`, `tag`, `eTime`/`etime`
+Evidence (table usage):
+- `userInfo`: `LoginPage.aspx.cs`, `SignUpPage.aspx.cs`, `StartExam.aspx.cs`, `Leaderboard.aspx.cs`, `UserProfile.aspx.cs`, `ExamResult.aspx.cs`.
+- `mcqQS`: `MCQExam.aspx.cs`, `MCQSet.aspx.cs`, `StartExam.aspx.cs`.
+- `mcqTaken`: `MCQExam.aspx.cs`, `StartExam.aspx.cs`.
+- `mcqCourseDetail`: `MCQSet.aspx.cs`.
+- `theoryQS`: `TheoryExam.aspx.cs`, `TheorySet.aspx.cs`, `StartExam.aspx.cs`.
+- `theoryAns`: `TheoryExam.aspx.cs`, `ShowAns.aspx.cs`.
+- `theoryTaken`: `TheoryExam.aspx.cs`, `StartExam.aspx.cs`.
+- `theoryCourseDetail`: `TheorySet.aspx.cs`.
+- `theoryCourseQueue`: `TheoryExam.aspx.cs`, `AdminCourseQueue.aspx.cs`, `ShowAns.aspx.cs`.
+- `theoryQueue`: `TheoryExam.aspx.cs`, `AdminCourseQueue.aspx.cs`.
 
-- `mcqCourseDetail` (MCQ exams per course)
-  - Used in: `MCQSet.aspx.cs` (`setB_Click` counts rows by `courseID` and inserts a new `examNo`)
+### ER diagram (logical, as implied by code)
 
-- `mcqTaken` (MCQ submissions/results)
-  - Used in: `StartExam.aspx.cs` (check if already taken), `MCQExam.aspx.cs` (insert mark)
-  - Columns referenced include: `studentID`, `courseID`, `examNo`, `mark`
-
-- `theoryQS` (theory questions)
-  - Used in: `StartExam.aspx.cs`, `TheoryExam.aspx.cs`, `TheorySet.aspx.cs`
-  - Columns referenced include: `course`, `qsNo`, `qsA`, `qsB`, `markA`, `markB`, `eTime`
-
-- `theoryCourseDetail` (theory exams per course)
-  - Used in: `TheorySet.aspx.cs` (`setB_Click` counts rows by `courseID` and inserts a new `examNo`)
-
-- `theoryAns` (theory answer sheets)
-  - Used in: `TheoryExam.aspx.cs` (insert answers), `ShowAns.aspx.cs` (read answers), `ShowAns.aspx.cs` (update mark + approval)
-  - Columns referenced include: `studentID`, `courseID`, `qsNo`, `qsA`, `ansA`, `markA`, `isAprove`, `qsB`, `markB`, `ansB`, and `mark` (total mark) in `ShowAns.submitB_Click`
-
-- `theoryTaken` (theory attempt record)
-  - Used in: `StartExam.aspx.cs` (check if already taken), `TheoryExam.aspx.cs` (insert attempt)
-  - Columns referenced include: `studentID`, `courseID`, `examNo`
-
-- `theoryCourseQueue` (queue of students awaiting marking for a course)
-  - Used in: `TheoryExam.aspx.cs` (insert), `AdminCourseQueue.aspx.cs` (count), `ShowAns.aspx.cs` (delete upon marking)
-  - Columns referenced include: `student_ID`, `courseID`
-
-- `theoryQueue` (admin-level queue per course)
-  - Used in: `TheoryExam.aspx.cs` (insert course into queue), `AdminCourseQueue.aspx.cs` (delete course when empty)
-  - Columns referenced include: `courseID`, `courseName`
-
-### Entity-relationship sketch (inferred only from observed FK-like fields)
-
-No explicit foreign keys were observed in code; the relationships below reflect how IDs are used in SQL statements.
+This ER diagram is based on the tables and the relationships implied by the code’s join keys (e.g., studentID/courseID) and the script table names. It does not assume foreign key constraints exist unless shown in code (the code uses matching IDs in queries).
 
 ```mermaid
 erDiagram
   USERINFO {
     varchar id PK
-    varchar password
+    varchar name
+    varchar department
+    varchar email
     varchar semester
+    varchar gender
+    varchar password
+    varchar fatherName
+    varchar hall
+    varchar image
     int no_of_exam
     float total_mark
     varchar abc
@@ -296,6 +440,10 @@ erDiagram
     varchar course
     varchar qsNo
     varchar qs
+    varchar op1
+    varchar op2
+    varchar op3
+    varchar op4
     varchar ans
     varchar tag
     varchar eTime
@@ -323,504 +471,395 @@ erDiagram
     varchar studentID
     varchar courseID
     varchar qsNo
+    varchar qsA
     varchar ansA
+    numeric markA
+    varchar isAprove
+    varchar qsB
+    numeric markB
     varchar ansB
     numeric mark
-    varchar isAprove
   }
 
   THEORYTAKEN {
     varchar studentID
     varchar courseID
     varchar examNo
+    numeric mark
   }
 
-  USERINFO ||--o{ MCQTAKEN : "studentID -> id"
-  USERINFO ||--o{ THEORYANS : "studentID -> id"
-  USERINFO ||--o{ THEORYTAKEN : "studentID -> id"
+  USERINFO ||--o{ MCQTAKEN : "id -> studentID (queried/inserted)"
+  USERINFO ||--o{ THEORYANS : "id -> studentID (queried/inserted)"
+  USERINFO ||--o{ THEORYTAKEN : "id -> studentID (queried/inserted)"
+  MCQQS ||--o{ MCQTAKEN : "course -> courseID (implied)"
+  THEORYQS ||--o{ THEORYANS : "course -> courseID (implied)"
 ```
 
-**Derivation notes:**  
-This diagram is derived from the identifier fields used in insert/select statements in:
-- `MCQExam.aspx.cs` (`insert into mcqTaken (studentID,courseID,examNo,mark) ...`)
-- `StartExam.aspx.cs` (checks `mcqTaken` and `theoryTaken` by `studentID`, `courseID`, `examNo`)
-- `TheoryExam.aspx.cs` (`insert into theoryAns (...)`, then `insert into theoryTaken (...)`)
-- `ShowAns.aspx.cs` (loads `theoryAns` by `studentID` and `courseID`)
+Diagram mapping:
+- `USERINFO` structure matches fields referenced in:
+  - Insert: `SignUpPage.aspx.cs` inserts `id,name,department,email,semester,gender,password,fatherName,hall,image,no_of_exam,total_mark`.
+  - Read: `UserProfile.aspx.cs` reads `name,id,department,semester,gender,email,fatherName,hall`.
+  - Update: `ExamResult.aspx.cs` updates `no_of_exam,total_mark,abc`.
+- `MCQQS` columns match fields read in `MCQExam.aspx.cs` (`qs`, `op1..op4`, `ans`, `tag`, `eTime`) and inserted in `MCQSet.aspx.cs` (`course,qsNo,qs,op1..op4,ans,tag,etime`).
+- `THEORYQS` columns match fields read in `TheoryExam.aspx.cs` (`qsA,qsB,markA,markB,eTime`) and inserted in `TheorySet.aspx.cs`.
+- `THEORYANS` columns match inserted columns in `TheoryExam.aspx.cs` and read/update columns in `ShowAns.aspx.cs`.
 
-## Public interfaces (as implemented)
+## State machine (key domain object)
 
-This application exposes page-based HTTP endpoints (Web Forms). There is no evidence of Web API controllers in the inspected files; thus “public interface” is the set of `.aspx` pages and their server-side event handlers.
+### Theory answer sheet state (as implemented)
 
-### Page endpoints and their key handlers
-
-#### `LoginPage.aspx`
-
-- Class: `OnlineExamSystem.LoginPage` (`LoginPage.aspx.cs`)
-- Key handlers:
-  - `signupB(object sender, EventArgs e)`: `Server.Transfer("SignUpPage.aspx", true);`
-  - `loginButton_Click(object sender, EventArgs e)`:
-    - If `AccountTypeDB.SelectedItem.Text == "Student"`: performs DB `select count(*) from userInfo where id=... and password=...`.
-      - On success, sets `Session["_ID"]` and transfers to `Dashboard.aspx`.
-      - On failure, uses `Response.Write("<script>alert(...);</script>")`.
-    - If `AccountTypeDB.SelectedItem.Text == "Teacher"`: checks hardcoded credentials:
-      - `userTextBox.Text == "Admin" && passTextBox.Text == "Admin"` then transfers to `AdminPanel.aspx`.
-
-**Security-relevant note:** The Student login query is built by string concatenation (SQL injection risk) and stores passwords in plaintext comparison. Evidence: `LoginPage.aspx.cs`.
-
-#### `SignUpPage.aspx`
-
-- Class: `OnlineExamSystem.SignUpPage` (`SignUpPage.aspx.cs`)
-- Key handlers:
-  - `loginB_Click`: transfers to `LoginPage.aspx`.
-  - `signUpB_Click`:
-    - Validates `passTxBox.Text` equals `cPassTxBox.Text`.
-    - Saves uploaded file to `~/Images/` via `FileUpload1.SaveAs(Server.MapPath("~/Images/") + Path.GetFileName(FileUpload1.FileName));`
-    - Inserts a new record in `userInfo` with fields such as id/name/department/email/semester/gender/password/fatherName/hall/image/no_of_exam/total_mark.
-    - On success, shows alert and transfers to `LoginPage.aspx`.
-
-**Security-relevant note:** User-supplied fields are concatenated directly into SQL. Evidence: `SignUpPage.aspx.cs` `newcon` string.
-
-#### `StartExam.aspx`
-
-- Class: `OnlineExamSystem.StartExam` (`StartExam.aspx.cs`)
-- Key behaviors:
-  - `Page_Load`:
-    - Requires `Session["_ID"] != null`, otherwise alerts and transfers to `LoginPage.aspx`.
-    - On initial load (`!IsPostBack`), reads the student’s `semester` from `userInfo` and populates `SelectCourseDropDownList` with fixed course codes based on the `semester` string.
-  - `startB_Click`:
-    - Sets `Session["_Course"]` to selected course.
-    - Sets `Session["_qsN"] = 1` (unused in some flows) and then checks selected exam type.
-    - For `Theory`: queries `select count(*) from theoryQS where course=...`; if >=1 sets `Session["_sTCRS"]` to course; else alerts.
-    - For `MCQ`: similarly checks `mcqQS` and sets `Session["_sMCRS"]`.
-    - The actual transfers to `TheoryExam.aspx`/`MCQExam.aspx` in this handler are commented out; starting the exam is implemented in `GridView1_SelectedIndexChanged` and `GridView2_SelectedIndexChanged`.
-  - `GridView1_SelectedIndexChanged` (theory exam selection):
-    - Reads `exNo` and `crsNo` from selected grid row cells.
-    - Checks if a row exists in `theoryTaken` for `(studentID, courseID, examNo)`.
-    - If not taken, computes a starting question number:
-      - `xx = (N - 1) * 2 + 1; Session["_qNO"] = xx;`
-    - Transfers to `TheoryExam.aspx`.
-  - `GridView2_SelectedIndexChanged` (MCQ exam selection):
-    - Same pattern using `mcqTaken` and transfers to `MCQExam.aspx`.
-
-**Behavioral note:** The exam number and question offset logic suggests that each “examNo” maps to a different range of questions, but `MCQExam.aspx.cs` currently always loads `qsNo` 1..5, not offset by `examNo`. This inconsistency is documented rather than resolved.
-
-#### `MCQExam.aspx`
-
-- Class: `OnlineExamSystem.MCQExam` (`MCQExam.aspx.cs`)
-- Key behaviors:
-  - `Page_Load`:
-    - If `Session["_Course"] != null`, loads 5 questions from `mcqQS` with `qsNo` 1..5 for that course using 5 separate queries.
-    - Stores question text/answer/tag into session keys: `_qs1.._qs5`, `_ans1.._ans5`, `_tag1.._tag5`.
-    - Reads exam time `ET` from the `eTime` column of question 5 and on first load sets `Session["Timer"] = DateTime.Now.AddMinutes(examTime).ToString();`.
-  - `submitB_Click`:
-    - Compares selected options from RadioButtonLists against the correct answers stored in session.
-    - Stores `Session["_tMark"] = mark;`
-    - Inserts into `mcqTaken (studentID, courseID, examNo, mark)` with examNo hardcoded to `"1"`.
-    - Transfers to `ExamResult.aspx`.
-  - `Timer1_Tick`:
-    - Displays time remaining by comparing `DateTime.Now` to `DateTime.Parse(Session["Timer"].ToString())`.
-    - When time passes, sets label to `"Time Out!"` but does not auto-submit.
-
-#### `ExamResult.aspx`
-
-- Class: `OnlineExamSystem.ExamResult` (`ExamResult.aspx.cs`)
-- Key behaviors:
-  - `Page_Load`:
-    - Displays mark from `Session["_tMark"]`.
-    - Reads current user exam counters from `userInfo` (`no_of_exam` and `total_mark`), increments them, computes average (`Avg = totalMark / noOfExam`), and writes it back to `userInfo` column `abc`.
-    - Displays the 5 question texts, tags, and correct answers from session `_qs1.._qs5`, `_tag1.._tag5`, `_ans1.._ans5`.
-
-**Reliability note:** The code assumes session keys exist and does not null-check them before calling `.ToString()`, which can throw if the exam flow didn’t populate these sessions. Evidence: direct `.ToString()` usage throughout `ExamResult.aspx.cs`.
-
-#### `TheoryExam.aspx`
-
-- Class: `OnlineExamSystem.TheoryExam` (`TheoryExam.aspx.cs`)
-- Key behaviors:
-  - `Page_Load`:
-    - Attempts to validate login with `if (Session["_ID"].ToString() == null)` which can throw if `_ID` is null. The intended behavior is to require login.
-    - Uses `Session["_Course"]` and `Session["_qNo"]` to fetch five consecutive theory questions from `theoryQS`, incrementing the question number each time.
-    - Reads `eTime` from the first fetched record and sets `Session["Timer"]` similarly to MCQ.
-  - `submitB_Click`:
-    - Inserts five rows into `theoryAns` (qsNo 1..5) capturing question text, student answers, per-part marks, and sets `isAprove` to `"No"`.
-    - Inserts into `theoryCourseQueue (student_ID, courseID)`.
-    - Inserts into `theoryQueue (courseID, courseName)` where `courseName` is derived by `getCourseName(courseID)` mapping known course IDs to human-readable names.
-    - Inserts into `theoryTaken (studentID, courseID, examNo)` with examNo hardcoded `"1"`.
-    - Alerts `"Your Answer Sheet Submited!"` and transfers to `Dashboard.aspx`.
-
-#### Admin queue and marking pages
-
-- `AdminPanel.aspx.cs`:
-  - Mostly navigation via `Server.Transfer` to:
-    - `AdminQueue.aspx`
-    - `AdminLeaderboard.aspx`
-    - `SetExam.aspx`
-    - `EditExam.aspx`
-    - `LoginPage.aspx` (logout)
-
-- `AdminQueue.aspx.cs` (note: the class name in this file is `AdminCourseQueue`, despite being `AdminQueue.aspx.cs`):
-  - `GridView2_SelectedIndexChanged`: stores selected course ID in `Session["_crsID1"]` and transfers to `AdminCourseQueue.aspx`.
-
-- `AdminCourseQueue.aspx.cs` (note: the class name in this file is `AdminQueue`, despite being `AdminCourseQueue.aspx.cs`):
-  - `Page_Load`: if `Session["_checkCID"]` exists, counts rows in `theoryCourseQueue` for that course; if empty, deletes that course from `theoryQueue`.
-  - `GridView1_SelectedIndexChanged`: sets `Session["_stID"]` and `Session["_crsID"]` from grid row cells and transfers to `ShowAns.aspx`.
-
-- `ShowAns.aspx.cs`:
-  - `Page_Load`: loads the five theory answers for a student/course (qsNo 1..5) from `theoryAns` and displays them.
-  - `submitB_Click`:
-    - Parses teacher-entered per-part marks (A and B parts) from UI fields.
-    - Computes a `total` mark; however the code assigns `total = a + b + c + d + ee;` and then immediately overwrites it with `total = a1 + b1 + c1 + d1 + ee1;`, meaning only the B-part total is persisted. This is a code fact, not an assumption.
-    - Updates `theoryAns` setting `mark=total` and `isAprove='Yes'` for the student/course.
-    - Deletes from `theoryCourseQueue` for the student/course.
-    - Sets `Session["_checkCID"]` and transfers to `AdminCourseQueue.aspx`.
-
-## Critical runtime flows (sequence diagrams)
-
-### Student login flow
-
-Derived from `OnlineExamSystem/LoginPage.aspx.cs` `loginButton_Click`.
+The repository implements an approval state for theory answers using the `theoryAns.isAprove` field and a queue table `theoryCourseQueue`.
 
 ```mermaid
-sequenceDiagram
-  participant Browser as "Browser"
-  participant Login as "LoginPage.aspx.cs (loginButton_Click)"
-  participant DB as "SQL Server (userInfo)"
-
-  Browser->>Login: "POST login form"
-  alt "AccountTypeDB == Student"
-    Login->>DB: "SELECT COUNT(*) FROM userInfo WHERE id=... AND password=..."
-    DB-->>Login: "count"
-    alt "count == 1"
-      Login->>Login: "Session['_ID'] = userTextBox.Text"
-      Login-->>Browser: "Server.Transfer('Dashboard.aspx')"
-    else "count != 1"
-      Login-->>Browser: "Response.Write(alert)"
-    end
-  else "AccountTypeDB == Teacher"
-    alt "userTextBox == Admin AND passTextBox == Admin"
-      Login-->>Browser: "Server.Transfer('AdminPanel.aspx')"
-    else
-      Login-->>Browser: "Response.Write(alert)"
-    end
-  end
+stateDiagram-v2
+  [*] --> DraftedInDb: "submitB_Click writes theoryAns rows\n(isAprove='No')"
+  DraftedInDb --> QueuedForReview: "submitB_Click inserts theoryCourseQueue and theoryQueue"
+  QueuedForReview --> ApprovedAndScored: "ShowAns.submitB_Click updates theoryAns\n(isAprove='Yes', mark=total)"
+  ApprovedAndScored --> [*]: "ShowAns.submitB_Click deletes from theoryCourseQueue"
 ```
 
-### MCQ exam submission and scoring
+State mapping to code artifacts:
+- Transition to `DraftedInDb` and `QueuedForReview`:
+  - `OnlineExamSystem/TheoryExam.aspx.cs`, method `submitB_Click` inserts into `theoryAns` with `isAprove='No'`, then inserts into `theoryCourseQueue` and `theoryQueue`.
+- Transition to `ApprovedAndScored`:
+  - `OnlineExamSystem/ShowAns.aspx.cs`, method `submitB_Click` updates `theoryAns set mark=..., isAprove='Yes'` and deletes from `theoryCourseQueue`.
 
-Derived from `MCQExam.aspx.cs` `submitB_Click` and `ExamResult.aspx.cs` `Page_Load`.
+## Configuration and environment
 
-```mermaid
-sequenceDiagram
-  participant Browser as "Browser"
-  participant MCQ as "MCQExam.aspx.cs"
-  participant DB as "SQL Server (mcqTaken, userInfo)"
-  participant Result as "ExamResult.aspx.cs"
+### Web.config settings (as shipped)
 
-  Browser->>MCQ: "Click Submit"
-  MCQ->>MCQ: "Compare selected answers vs Session['_ans1'..'_ans5']"
-  MCQ->>MCQ: "Session['_tMark'] = mark"
-  MCQ->>DB: "INSERT INTO mcqTaken(studentID,courseID,examNo,mark) VALUES(...,'1',mark)"
-  MCQ-->>Browser: "Server.Transfer('ExamResult.aspx')"
-  Browser->>Result: "Load ExamResult.aspx"
-  Result->>DB: "SELECT * FROM userInfo WHERE id=Session['_ID']"
-  Result->>DB: "UPDATE userInfo SET no_of_exam=..., total_mark=..., abc=... WHERE id=..."
-  Result-->>Browser: "Render mark + questions/tags/answers from Session"
-```
+File: `OnlineExamSystem/Web.config`
 
-### Theory exam submission to admin queue
+Implemented settings:
+- Compilation/debug:
+  - `<compilation debug="true" targetFramework="4.8"/>`
+  - `<httpRuntime targetFramework="4.5.2"/>`
+- CodeDOM providers for Roslyn-based compilation:
+  - `Microsoft.CodeDom.Providers.DotNetCompilerPlatform.*`
+- Connection strings:
+  - `dbconnection`: `connectionString="your-database-connection-string"`
+  - `OnlineExamConnectionString`: `connectionString="your-database-connection-string"` with `providerName="System.Data.SqlClient"`
 
-Derived from `TheoryExam.aspx.cs` `submitB_Click` and admin queue pages.
+Important: Despite `Web.config` defining connection strings, most code-behind files do not read these configuration entries. Instead, many pages hardcode:
+- `string CS = "your-database-connection-string";`
 
-```mermaid
-sequenceDiagram
-  participant Browser as "Browser"
-  participant Theory as "TheoryExam.aspx.cs"
-  participant DB as "SQL Server (theoryAns, theoryCourseQueue, theoryQueue, theoryTaken)"
-  participant AdminQueue as "AdminCourseQueue.aspx.cs"
-  participant Show as "ShowAns.aspx.cs"
+Evidence:
+- `OnlineExamSystem/Web.config` connection strings section.
+- Hardcoded connection strings in:
+  - `LoginPage.aspx.cs`, `SignUpPage.aspx.cs`, `StartExam.aspx.cs`, `MCQExam.aspx.cs`, `TheoryExam.aspx.cs`, `ExamResult.aspx.cs`, `ShowAns.aspx.cs`, `MCQSet.aspx.cs`, `TheorySet.aspx.cs`, `Leaderboard.aspx.cs`, `AdminCourseQueue.aspx.cs`.
 
-  Browser->>Theory: "Click Submit"
-  Theory->>DB: "INSERT 5 rows into theoryAns (qsNo 1..5, isAprove='No')"
-  Theory->>DB: "INSERT INTO theoryCourseQueue(student_ID, courseID)"
-  Theory->>DB: "INSERT INTO theoryQueue(courseID, courseName)"
-  Theory->>DB: "INSERT INTO theoryTaken(studentID, courseID, examNo) VALUES(...,'1')"
-  Theory-->>Browser: "Server.Transfer('Dashboard.aspx')"
+Exception:
+- `UserProfile.aspx.cs` uses a different hardcoded connection string pointing to a specific machine/instance:
+  - `Data Source=DESKTOP-JT5TE1G\\SQLEXPRESS;Initial Catalog=OnlineExam;Persist Security Info=True;User ID=sa;Password=369@saikat`
 
-  Note over AdminQueue,Show: "Admin selects course and student via GridViews"
-  AdminQueue->>Show: "Server.Transfer('ShowAns.aspx') with Session['_stID'], Session['_crsID']"
-```
+This is code-derived behavior and may require modification for other environments (see “Operational concerns”).
 
-## Session state and key session variables
+### Web.config transforms
 
-The application relies heavily on ASP.NET Session state to carry identity and exam context:
+- `OnlineExamSystem/Web.Debug.config`: template comments only; no active transforms.
+- `OnlineExamSystem/Web.Release.config`: removes compilation debug attribute via:
+  - `<compilation xdt:Transform="RemoveAttributes(debug)" />`
 
-- `Session["_ID"]`: student identifier (set in `LoginPage.loginButton_Click`, read across many pages)
-- `Session["_Course"]`: selected course (set in `StartExam.startB_Click`)
-- `Session["_qNO"]`: starting question number for theory/mcq exams computed in `StartExam.GridView*_SelectedIndexChanged` (note the code uses `_qNO` in `StartExam` but `TheoryExam` reads `Session["_qNo"]` with different casing; this mismatch is present in code and may cause runtime issues.)
-- `Session["_qs1"... "_qs5"]`, `Session["_ans1"... "_ans5"]`, `Session["_tag1"... "_tag5"]`: MCQ question display and result rendering (`MCQExam` sets them; `ExamResult` reads them)
-- `Session["_tMark"]`: total mark for MCQ result (`MCQExam` sets it; `ExamResult` reads it)
-- Admin flow:
-  - `Session["_crsID1"]`: course chosen by admin (`AdminQueue.aspx.cs`)
-  - `Session["_stID"]`, `Session["_crsID"]`: student and course to mark (`AdminCourseQueue.aspx.cs`)
-  - `Session["_checkCID"]`: course id used to check whether to delete admin queue course (`ShowAns.aspx.cs` sets it; `AdminCourseQueue.aspx.cs` reads it)
+Evidence:
+- `OnlineExamSystem/Web.Debug.config`
+- `OnlineExamSystem/Web.Release.config`
 
-All of these are evidenced by direct reads/writes in the listed `.aspx.cs` files.
+### Environment variables
 
-## Security behaviors and risks (strictly code-derived)
+No `.env` file is present in the provided repository structure, and no environment variable usage was observed in the inspected code-behind. The application’s database connectivity is controlled via hardcoded strings and/or `Web.config` connection strings.
+
+## Dependencies
+
+### NuGet packages (packages.config)
+
+File: `OnlineExamSystem/packages.config`
+- `Microsoft.CodeDom.Providers.DotNetCompilerPlatform` version `1.0.0`
+- `Microsoft.Net.Compilers` version `1.0.0` (developmentDependency)
+
+Evidence:
+- `OnlineExamSystem/packages.config`
+
+### Assembly references (csproj)
+
+File: `OnlineExamSystem/OnlineExamSystem.csproj`
+Notable references include:
+- `System.Web`, `System.Data`, `System.Configuration`, etc.
+- `CrystalDecisions.Web` (referenced, but no Crystal Reports code usage was observed in the inspected code-behind).
+- `Microsoft.CodeDom.Providers.DotNetCompilerPlatform` (NuGet).
+
+Evidence:
+- `<Reference Include="CrystalDecisions.Web, Version=13.0.4000.0, ..."/>` in `OnlineExamSystem.csproj`.
+
+### External integrations
+
+The only active external integration observed is SQL Server via `System.Data.SqlClient`.
+
+There is commented-out code for PDF generation via iTextSharp in:
+- `OnlineExamSystem/DownloadPdf.aspx.cs`
+However, iTextSharp namespaces are commented and not included as packages in `packages.config`.
+
+## Security behaviors (as implemented)
 
 ### Authentication and authorization
 
-- Student authentication is implemented by querying `userInfo` with `id` and `password` and checking if `COUNT(*) == 1` (`LoginPage.aspx.cs`).
-- Teacher/admin authentication is a hardcoded credential check: username `"Admin"` and password `"Admin"` (`LoginPage.aspx.cs`).
-- Authorization is not role-based via ASP.NET Membership or FormsAuthentication configuration in `Web.config`. Instead, access control is implemented inconsistently by checking `Session["_ID"] != null` in some pages (for example `StartExam.aspx.cs`, `Leaderboard.aspx.cs`, `UserProfile.aspx.cs`) and not in others.
-- No evidence of ASP.NET authorization sections in `Web.config` (the current `Web.config` contains only compilation/runtime and connectionStrings).
+Authentication is implemented with:
+- Student login: a SQL query that checks `userInfo.id` and `userInfo.password` and sets `Session["_ID"]` on success.
+- Teacher/admin login: a hardcoded check for username/password `Admin`/`Admin`.
+
+Authorization is primarily “soft” and page-based:
+- Many student pages check `Session["_ID"] != null` and redirect to login if missing (examples: `StartExam.aspx.cs`, `Leaderboard.aspx.cs`, `UserProfile.aspx.cs`).
+- Admin pages shown do not consistently enforce an admin session/role check; access control is mostly via navigation from login.
+
+Evidence:
+- Student login: `OnlineExamSystem/LoginPage.aspx.cs`, `loginButton_Click`.
+- Admin login: same method, teacher branch.
+- Session checks:
+  - `StartExam.aspx.cs` checks `if (Session["_ID"] != null)`.
+  - `Leaderboard.aspx.cs` checks `if (Session["_ID"] != null)`.
+  - `UserProfile.aspx.cs` checks `if (Session["_ID"] != null)`.
+- In contrast, `TheoryExam.aspx.cs` contains `if (Session["_ID"].ToString() == null)` which can throw if `_ID` is null; this is a code-level risk rather than an intended security feature.
 
 ### Secrets handling
 
-- Connection strings are hardcoded in many files as `"your-database-connection-string"`, and one file contains an explicit SQL Server username/password (`UserProfile.aspx.cs`).
-- Because these values are in source, the repository contains secrets-like material (database password) in `UserProfile.aspx.cs` and should be treated as sensitive.
+Database credentials are embedded directly in code in at least one file:
+- `OnlineExamSystem/UserProfile.aspx.cs` contains a full SQL Server connection string with `User ID=sa;Password=...`.
 
-### Input handling and SQL injection exposure
+Elsewhere, placeholder values are hardcoded:
+- `string CS = "your-database-connection-string";`
 
-- SQL statements are built using string concatenation of user input in multiple places:
-  - `LoginPage.aspx.cs` concatenates `userTextBox.Text` and `passTextBox.Text` into a `SELECT COUNT(*)` query.
-  - `SignUpPage.aspx.cs` concatenates registration inputs into an `INSERT`.
-  - Multiple pages concatenate values from sessions and UI fields into `SELECT`, `INSERT`, `UPDATE`, and `DELETE` strings.
-- There is no evidence of parameterized queries (`SqlParameter`) in the files inspected.
+Evidence:
+- `UserProfile.aspx.cs`, `Page_Load` assigns `CS = "Data Source=...;User ID=sa;Password=..."`.
+
+### Input validation and injection safety
+
+The application constructs SQL statements via string concatenation of user-controlled inputs (e.g., user ID, password, textboxes). There is no parameterization (`SqlParameter`) in the inspected code.
+
+This implies SQL injection risk as implemented.
+
+Evidence:
+- `LoginPage.aspx.cs`, query string includes `userTextBox.Text` and `passTextBox.Text` concatenated into SQL.
+- `SignUpPage.aspx.cs`, insert statement concatenates multiple textbox values.
+- Similar patterns exist in `MCQSet.aspx.cs`, `TheorySet.aspx.cs`, `TheoryExam.aspx.cs`, `ShowAns.aspx.cs`.
 
 ### File upload handling
 
-- `SignUpPage.aspx.cs` saves uploaded files directly to `~/Images/` using `Path.GetFileName(FileUpload1.FileName)` and does not validate extension or content type in the shown code.
+Registration saves the uploaded file to `~/Images/` and stores the relative link in the database. The code does not implement file type validation or sanitization in the inspected method.
+
+Evidence:
+- `OnlineExamSystem/SignUpPage.aspx.cs`, method `signUpB_Click`:
+  - `FileUpload1.SaveAs(Server.MapPath("~/Images/") + Path.GetFileName(FileUpload1.FileName));`
+  - `string link = "Images/" + Path.GetFileName(FileUpload1.FileName);`
 
 ### Logging/auditing
 
-- User-visible alerts are implemented via `Response.Write("<script>alert(...);</script>")` across pages.
-- There is no evidence in inspected files of structured logging frameworks or persistent audit logs.
-
-## Operational behaviors and edge cases observed in code
-
-### Exam timing
-
-- Both `MCQExam` and `TheoryExam` store a deadline in `Session["Timer"]` as a string and compute remaining time in `Timer1_Tick`.
-- On timeout, the label shows `"Time Out!"` but the code does not auto-submit or disable inputs; commented-out blocks suggest intended behavior but not implemented.
+There is no structured logging framework usage in the inspected code. Errors are sometimes surfaced to the user via `Response.Write("<script>alert(...)")`.
 
 Evidence:
-- `OnlineExamSystem/MCQExam.aspx.cs` `Timer1_Tick`
-- `OnlineExamSystem/TheoryExam.aspx.cs` `Timer1_Tick`
+- `LoginPage.aspx.cs` catch block: `Response.Write("<script>alert(ex.Message);</script>");`
 
-### Exam numbering
+## Operational concerns and failure handling (code-derived)
 
-- MCQ and theory insertion into `mcqTaken` and `theoryTaken` currently hardcode `examNo` to `"1"` in:
-  - `MCQExam.aspx.cs` `submitB_Click`
-  - `TheoryExam.aspx.cs` `submitB_Click`
+### Database connectivity and reliability
 
-However, `StartExam.aspx.cs` uses `examNo` from grid row selection and checks `mcqTaken/theoryTaken` using that selected `examNo`. This discrepancy means the “already taken” check may not behave as intended when multiple exams exist per course.
-
-### Theory marking total bug
-
-`ShowAns.aspx.cs` `submitB_Click` overwrites the `total` variable:
-
-```csharp
-double total = a + b + c + d + ee;
-total = a1 + b1 + c1 + d1 + ee1;
-```
-
-As written, only the B-part total is retained. This is a confirmed behavior from code, not speculation.
-
-## Important code snippets (annotated)
-
-### Student login query and session establishment
-
-**File:** `Online-Examination-System-7216/OnlineExamSystem/LoginPage.aspx.cs`  
-**Symbol:** `loginButton_Click(object sender, EventArgs e)`  
-
-```csharp
-SqlCommand cmd = new SqlCommand(
-  "select count(*) from userInfo where id ='"
-  + userTextBox.Text
-  + "' and password='"
-  + passTextBox.Text
-  + "' ", con);
-
-...
-if (dt.Rows[0][0].ToString() == "1")
-{
-  Session["_ID"] = userTextBox.Text;
-  Server.Transfer("Dashboard.aspx", true);
-}
-```
-
-This code defines the student authentication mechanism and establishes the session identity key `_ID`.
-
-### Registration saving uploaded image and inserting userInfo row
-
-**File:** `Online-Examination-System-7216/OnlineExamSystem/SignUpPage.aspx.cs`  
-**Symbol:** `signUpB_Click(object sender, EventArgs e)`  
-
-```csharp
-FileUpload1.SaveAs(Server.MapPath("~/Images/") + Path.GetFileName(FileUpload1.FileName));
-string link = "Images/" + Path.GetFileName(FileUpload1.FileName);
-
-string newcon =
-  "insert into userInfo (id,name,department,email,semester,gender,password,fatherName,hall,image,no_of_exam,total_mark) " +
-  "VALUES('" + idTxBox.Text + "', '" + nameTxBox.Text + "', ... , '" + link + "', '" + nEx + "', '" + tM + "')";
-```
-
-This code establishes where profile images are stored (`~/Images/`) and how user records are created.
-
-### MCQ scoring and persistence
-
-**File:** `Online-Examination-System-7216/OnlineExamSystem/MCQExam.aspx.cs`  
-**Symbol:** `submitB_Click(object sender, EventArgs e)`  
-
-```csharp
-int mark = 0;
-if (RadioButtonList1.SelectedIndex > -1 && RadioButtonList1.SelectedItem.Text == a1) { mark++; }
-// ... repeated for 2..5
-Session["_tMark"] = mark;
-
-string newcon =
-  "insert into mcqTaken (studentID,courseID,examNo,mark) VALUES('"
-  + sNo + "','" + crsNo + "', '" + "1" + "', '" + M + "')";
-```
-
-This is the complete scoring algorithm for MCQ exams (count correct answers across five questions).
-
-### Theory submission creates answer rows and queues
-
-**File:** `Online-Examination-System-7216/OnlineExamSystem/TheoryExam.aspx.cs`  
-**Symbol:** `submitB_Click(object sender, EventArgs e)`  
-
-```csharp
-string newcon =
-  "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('"
-  + stID + "', '" + crsID + "', '" + "1" + "', '" + qs1A.Text + "', '" + ans1ATB.Text + "', '" + m1A.Text + "','" + "No"
-  + "', '" + qs1B.Text + "', '" + m1B.Text + "' ,'" + ans1BTB.Text + "')";
-
-...
-newcon = "insert into theoryCourseQueue (student_ID,courseID) VALUES('" + stID + "', '" + crsID + "')";
-...
-newcon = "insert into theoryQueue (courseID, courseName) VALUES('" + crsID + "', '" + courseNAME + "')";
-...
-newcon = "insert into theoryTaken (studentID,courseID,examNo) VALUES('" + sNo + "','" + crsNo + "', '" + eN + "')";
-```
-
-This code defines the “manual marking” workflow by storing the answer sheet and adding it to queues used by admin pages.
-
-### Admin marking updates approval and removes from queue
-
-**File:** `Online-Examination-System-7216/OnlineExamSystem/ShowAns.aspx.cs`  
-**Symbol:** `submitB_Click(object sender, EventArgs e)`  
-
-```csharp
-string newcon =
-  "update theoryAns set mark='" + total + "', isAprove='" + "Yes"
-  + "' where studentID='" + sID + "' and courseID='" + cID + "';";
-
-string newcon1 =
-  "delete from theoryCourseQueue where student_ID='" + sID + "' and courseID='" + cID + "';";
-```
-
-This is the “marking completion” behavior; it makes the answer sheet approved and removes the student/course from the course queue.
-
-## CI/CD and deployment evidence
-
-No GitHub Actions workflows or other CI/CD configuration files were provided in the repository tree snapshot for this task. Therefore, no CI/CD pipeline diagram is included.
-
-Deployment artifacts are typical for ASP.NET Web Forms: the project is designed to run under IIS/IIS Express. The `.csproj` includes IIS Express properties and an `IISUrl` for local dev (`http://localhost:55618/`), which suggests Visual Studio local hosting.
-
-Evidence: `Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj` `<WebProjectProperties>`.
-
-## How to run locally (derived from repo contents)
-
-### Prerequisites
-
-Based on the project targeting and SQL usage:
-
-1. Visual Studio capable of building .NET Framework 4.8 Web Applications (or MSBuild with the appropriate web build targets).
-2. .NET Framework 4.8 targeting pack installed.
-3. SQL Server instance accessible to the web app.
-4. NuGet restore capability (packages are included in `packages/` folder, but VS/MSBuild may still attempt restore depending on configuration).
+Database connections are opened/closed manually; error handling varies:
+- Some pages wrap DB operations in try/catch (e.g., login), but others do not.
+- No retry logic or timeouts are configured explicitly in code.
 
 Evidence:
-- `TargetFrameworkVersion v4.8` (`OnlineExamSystem.csproj`)
-- SQL Server via `System.Data.SqlClient` usage and DB script.
-- NuGet packages in `packages.config`.
+- Try/catch in `LoginPage.aspx.cs` around DB open/query.
+- No try/catch in `TheorySet.aspx.cs` `AddQB_Click` (direct insert).
+- No explicit command timeout usage anywhere in inspected code.
 
-### Database setup
+### Session dependence
 
-1. Create a SQL Server database consistent with the code and scripts.
-2. Apply the schema from `Online-Examination-System-7216/database-script/Online-Examination-System-Databse-Script.sql`.
+The application uses `Session` as its primary state mechanism across pages. Important session keys include:
+- `_ID` (logged-in student ID): set in `LoginPage.loginButton_Click`, required by many pages.
+- `_Course` (selected course for exam): set in `StartExam.startB_Click`.
+- `_qNO` (start question number for theory/MCQ sequence): set in `StartExam.GridView*_SelectedIndexChanged`.
+- `_tMark`, `_qs1.._qs5`, `_ans1.._ans5`, `_tag1.._tag5`: set in `MCQExam.Page_Load` and `MCQExam.submitB_Click`, read in `ExamResult.Page_Load`.
+- Admin evaluation flow:
+  - `_crsID1` (selected course in admin queue): set in `AdminQueue.GridView2_SelectedIndexChanged`.
+  - `_stID`, `_crsID` (selected student/course): set in `AdminCourseQueue.GridView1_SelectedIndexChanged`.
+  - `_checkCID` (used to check if a course queue is empty and delete from `theoryQueue`): set in `ShowAns.submitB_Click`.
 
-The code expects tables such as `userInfo`, `mcqQS`, `theoryQS`, `mcqTaken`, `theoryAns`, `theoryCourseQueue`, `theoryQueue`, `mcqCourseDetail`, `theoryCourseDetail`, `theoryTaken`. This list is derived from SQL strings inside the `.aspx.cs` files.
+Evidence:
+- `LoginPage.aspx.cs`, `Session["_ID"] = userTextBox.Text;`.
+- `StartExam.aspx.cs`, `Session["_Course"] = SelectCourseDropDownList.Text;`, `Session["_qNO"] = xx;`.
+- `MCQExam.aspx.cs`, sets `Session["_qs1"]`, `Session["_ans1"]`, `Session["_tag1"]`, etc.
+- `ExamResult.aspx.cs`, reads `Session["_qs1"]`, `Session["_tag1"]`, `Session["_ans1"]`, etc.
+- `AdminQueue.aspx.cs`, `Session["_crsID1"] = row.Cells[1].Text;`.
+- `AdminCourseQueue.aspx.cs`, `Session["_stID"]` and `Session["_crsID"]`.
+- `ShowAns.aspx.cs`, `Session["_checkCID"] = cID;`.
 
-### Configure connection string(s)
+### Timer behavior
 
-This repository version uses hardcoded string literals in most pages, so local run typically requires replacing `"your-database-connection-string"` in all pages that use it, or changing code to read from `Web.config`.
+Both MCQ and theory exams implement a countdown timer based on `Session["Timer"]`:
+- Timer is set on initial (non-postback) load as `DateTime.Now.AddMinutes(examTime).ToString()`.
+- On each timer tick, the remaining time is computed and displayed.
+- When time is over, the code sets label to “Time Out!” but does not automatically submit or redirect.
 
-Files that contain `"your-database-connection-string"` include:
-- `OnlineExamSystem/LoginPage.aspx.cs`
-- `OnlineExamSystem/SignUpPage.aspx.cs`
+Evidence:
+- `MCQExam.aspx.cs`, `Page_Load` sets `Session["Timer"]` and `Timer1_Tick` compares times.
+- `TheoryExam.aspx.cs`, `Page_Load` sets `Session["Timer"]` and `Timer1_Tick` compares times.
+
+## Build, run, and test (commands derived from repo)
+
+### Prerequisites (implied by project files)
+
+- Visual Studio (or MSBuild) capable of building ASP.NET Web Application projects targeting .NET Framework 4.8.
+- .NET Framework 4.8 targeting pack installed (project targets `v4.8`).
+- IIS Express or IIS for hosting (project file includes IIS Express settings).
+- SQL Server (the code uses `System.Data.SqlClient` and schema script is for SQL Server).
+
+Evidence:
+- Target framework: `OnlineExamSystem/OnlineExamSystem.csproj`.
+- IIS Express settings: `OnlineExamSystem/OnlineExamSystem.csproj` under `<WebProjectProperties>` (e.g., `IISUrl` and `DevelopmentServerPort`).
+- SQL Server schema: `database-script/Online-Examination-System-Databse-Script.sql`.
+
+### Database setup (schema script)
+
+1. Create a SQL Server database (the script suggests a database named `OnlineExam`).
+2. Run the schema script:
+   - `database-script/Online-Examination-System-Databse-Script.sql`
+
+Evidence:
+- The script begins with `CREATE DATABASE [OnlineExam]` (present in the script content).
+
+### Configure database connection for the app
+
+As shipped, the code uses placeholder strings in many pages:
+- `string CS = "your-database-connection-string";`
+
+To run successfully, you must set a real SQL Server connection string in the code paths that are used, or refactor to read `Web.config` connection strings (not implemented currently).
+
+Additionally, `UserProfile.aspx.cs` contains a machine-specific hardcoded connection string and will likely fail unless it matches your environment.
+
+Evidence:
+- Hardcoded placeholder: multiple `.aspx.cs` files (see “Configuration”).
+- Machine-specific connection: `OnlineExamSystem/UserProfile.aspx.cs`.
+
+### Running locally (Visual Studio/IIS Express)
+
+The repository does not include CLI scripts; standard Web Forms workflow is implied by `.sln` and `.csproj`:
+
+1. Open `OnlineExamSystem.sln` in Visual Studio.
+2. Restore NuGet packages for the solution (packages are in `OnlineExamSystem/packages.config` and under `packages/`).
+3. Build the solution.
+4. Run the web project (`OnlineExamSystem`) using IIS Express (enabled in `OnlineExamSystem/OnlineExamSystem.csproj`: `<UseIISExpress>true</UseIISExpress>`).
+5. The project file indicates an IIS URL such as `http://localhost:55618/` in `<IISUrl>`.
+
+Evidence:
+- `OnlineExamSystem/OnlineExamSystem.csproj` includes:
+  - `<UseIISExpress>true</UseIISExpress>`
+  - `<IISUrl>http://localhost:55618/</IISUrl>`
+
+### How to test
+
+This repository does not contain automated test projects (no `*.Tests.csproj` and no test framework references were observed in the inspected files). Therefore, testing is manual through the UI.
+
+Manual test flows (code-derived):
+- Student registration:
+  - Navigate to `LoginPage.aspx`, click signup (`LoginPage.signupB`), fill `SignUpPage` fields, upload image, submit (`SignUpPage.signUpB_Click`) and verify insert into `userInfo`.
+- Student login:
+  - `LoginPage.loginButton_Click` (Student type) sets `Session["_ID"]` on success.
+- MCQ exam:
+  - From `Dashboard.aspx` -> `StartExam.aspx` -> choose course and select an MCQ exam row -> `MCQExam.aspx` -> submit -> `ExamResult.aspx`.
+- Theory exam and admin marking:
+  - From `StartExam.aspx` -> choose theory exam row -> `TheoryExam.aspx` -> submit -> admin logs in -> `AdminQueue.aspx` -> `AdminCourseQueue.aspx` -> select student -> `ShowAns.aspx` -> mark and submit.
+
+Evidence:
+- Handlers and navigation listed in “Public interfaces”.
+
+## Deployment model (as implied by code)
+
+There is no containerization, no infrastructure-as-code, and no CI/CD pipeline configuration files visible in the provided repository listing. Deployment is therefore inferred as a classic IIS deployment of an ASP.NET Web Forms application.
+
+```mermaid
+flowchart TB
+  Dev["Developer Machine\nVisual Studio / MSBuild"] --> Artifact["Web App Build Output\nbin/ + content files"]
+  Artifact --> IIS["IIS / IIS Express\nhosts OnlineExamSystem"]
+  IIS --> SQL["SQL Server\nOnlineExam database"]
+```
+
+Diagram mapping:
+- Build output path: `OnlineExamSystem/OnlineExamSystem.csproj` sets `<OutputPath>bin\</OutputPath>`.
+- Hosting: `.csproj` contains IIS Express settings; Web Forms is typically hosted on IIS (this is consistent with project type GUIDs and web application targets).
+- DB: schema script + `SqlClient` usage.
+
+## CI/CD pipeline
+
+No CI/CD configuration was found in the inspected repository files (no GitHub Actions, Azure Pipelines, etc., were referenced in the provided tree). Therefore, there is no code-justified CI/CD pipeline diagram to include.
+
+## Notable implementation details and limitations (code-derived)
+
+### Exams and question counts
+
+MCQ:
+- `MCQExam.aspx.cs` loads exactly 5 questions (qsNo 1..5) for the selected course.
+- The computed `mark` increments by 1 per correct answer.
+
+Theory:
+- `TheoryExam.aspx.cs` loads 5 questions but in pairs (A/B) per question record and uses `_qNo` to select a starting question number, incrementing for each subsequent question loaded.
+- Submission inserts 5 rows into `theoryAns` with `qsNo` hardcoded as 1..5 in the insert statements, independent of `_qNo`.
+
+Evidence:
+- `MCQExam.aspx.cs` contains 5 repeated blocks selecting qsNo '1'..'5'.
+- `TheoryExam.aspx.cs` loads five question records by incrementing `qN` and querying `theoryQS` by `qsNo`.
+- `TheoryExam.submitB_Click` inserts `qsNo` values `"1"`..`"5"`.
+
+### Admin queue maintenance
+
+`AdminCourseQueue.aspx.cs` conditionally deletes a course from `theoryQueue` if there are no remaining students for that course in `theoryCourseQueue`. The delete is triggered when `Session["_checkCID"]` is set (by `ShowAns.submitB_Click`).
+
+Evidence:
+- `OnlineExamSystem/AdminCourseQueue.aspx.cs`, `Page_Load`.
+- `OnlineExamSystem/ShowAns.aspx.cs`, `submitB_Click` sets `Session["_checkCID"] = cID;`.
+
+### PDF export
+
+The `DownloadPdf.aspx.cs` page contains only commented-out code for PDF generation. As implemented, it performs no work.
+
+Evidence:
+- `OnlineExamSystem/DownloadPdf.aspx.cs`, `Page_Load` contains a large commented block including `iTextSharp` usage.
+
+## Traceability index (key files)
+
+### Core configuration and build
+- `OnlineExamSystem/OnlineExamSystem.csproj` — project definition, .NET framework target, IIS Express settings, references.
+- `OnlineExamSystem/Web.config` — compilation settings and connection string placeholders.
+- `OnlineExamSystem/packages.config` — NuGet packages.
+
+### Database schema
+- `database-script/Online-Examination-System-Databse-Script.sql` — SQL Server schema definitions for the tables used by the application.
+
+### Authentication
+- `OnlineExamSystem/LoginPage.aspx.cs` — login logic for students and hardcoded teacher/admin.
+- `OnlineExamSystem/SignUpPage.aspx.cs` — registration and file upload.
+
+### Student exam flow
+- `OnlineExamSystem/Dashboard.aspx.cs`
 - `OnlineExamSystem/StartExam.aspx.cs`
 - `OnlineExamSystem/MCQExam.aspx.cs`
 - `OnlineExamSystem/TheoryExam.aspx.cs`
 - `OnlineExamSystem/ExamResult.aspx.cs`
-- `OnlineExamSystem/ShowAns.aspx.cs`
+- `OnlineExamSystem/Leaderboard.aspx.cs`
+- `OnlineExamSystem/UserProfile.aspx.cs`
+- `OnlineExamSystem/TakenCourses.aspx.cs`
+
+### Admin flow
+- `OnlineExamSystem/AdminPanel.aspx.cs`
+- `OnlineExamSystem/SetExam.aspx.cs`
 - `OnlineExamSystem/MCQSet.aspx.cs`
 - `OnlineExamSystem/TheorySet.aspx.cs`
+- `OnlineExamSystem/EditExam.aspx.cs`
+- `OnlineExamSystem/EditMCQ.aspx.cs`
+- `OnlineExamSystem/EditTheory.aspx.cs`
+- `OnlineExamSystem/AdminQueue.aspx.cs`
 - `OnlineExamSystem/AdminCourseQueue.aspx.cs`
-- `OnlineExamSystem/Leaderboard.aspx.cs`
+- `OnlineExamSystem/ShowAns.aspx.cs`
+- `OnlineExamSystem/AdminLeaderboard.aspx.cs`
 
-Additionally, `OnlineExamSystem/UserProfile.aspx.cs` uses a hardcoded machine-specific connection string and would also need to be updated for your environment.
+## Instructions for future agent
 
-### Run steps (Visual Studio / IIS Express)
+If deeper data-model documentation is required (for example, listing every column type and constraint from the SQL script), the SQL script is currently stored in a form that was read as a binary/base64 blob by tooling. A future agent should decode and re-read `database-script/Online-Examination-System-Databse-Script.sql` as text (using an approach that preserves its original encoding) to extract the complete schema verbatim, then update the ER section accordingly.
 
-1. Open `Online-Examination-System-7216/OnlineExamSystem.sln` in Visual Studio.
-2. Set `OnlineExamSystem` as the startup project.
-3. Ensure the site runs (IIS Express) and navigate to the configured URL (the project file lists `http://localhost:55618/`).
-4. Use `LoginPage.aspx` as an entry page (the repo includes it as content; default document configuration is not visible in provided `Web.config`, so the exact landing page depends on IIS settings).
-
-## How to test (derived from repo contents)
-
-No automated test projects, test frameworks, or test runner configurations were found in the repository tree snapshot. There is no evidence of MSTest/NUnit/xUnit projects, nor any `*.Tests.csproj`. Therefore, “How to test” is limited to manual, page-driven testing based on the implemented flows:
-
-1. Registration:
-   - Navigate to `SignUpPage.aspx`, register a user, verify a row exists in `userInfo` and that the image was saved under `OnlineExamSystem/Images/` (runtime path `~/Images/`).
-2. Login:
-   - Navigate to `LoginPage.aspx`, select “Student”, verify DB-backed login works.
-   - Select “Teacher” and log in with `Admin`/`Admin` to access admin pages.
-3. MCQ exam:
-   - Ensure `mcqQS` contains at least 5 questions for a course.
-   - Start exam via `StartExam.aspx` and submit answers; verify `mcqTaken` row and `userInfo` counters update.
-4. Theory exam:
-   - Ensure `theoryQS` contains questions for a course.
-   - Start theory exam, submit; verify rows in `theoryAns`, `theoryCourseQueue`, and `theoryQueue`.
-5. Admin marking:
-   - Navigate admin queue pages, select a student/course, enter marks, submit; verify `theoryAns.isAprove` becomes `Yes`, `theoryCourseQueue` entry is deleted, and potentially `theoryQueue` is removed when empty (`AdminCourseQueue.aspx.cs`).
-
-## Known inconsistencies and likely runtime issues (observed in code)
-
-1. `Session["_qNO"]` vs `Session["_qNo"]` case mismatch:
-   - `StartExam.aspx.cs` sets `Session["_qNO"]`, but `TheoryExam.aspx.cs` reads `Session["_qNo"]`.
-   - This can cause `TheoryExam` to throw when casting `(int)Session["_qNo"]`.
-2. Unsafe login check in `TheoryExam.Page_Load`:
-   - `if (Session["_ID"].ToString() == null)` will throw if `_ID` is null.
-3. Exam numbering inconsistencies:
-   - `StartExam` checks `examNo` from grid, but `MCQExam` and `TheoryExam` insert `examNo` as `"1"` always.
-4. `ShowAns` total mark logic overwrites A-part total with B-part total.
-
-These issues are direct consequences of the current source code.
-
-## Diagram applicability checklist (what is included and why)
-
-- Included:
-  - System/context diagram: justified by DB usage and web app nature.
-  - Page/component diagram: justified by Web Forms page boundaries and `Server.Transfer` calls.
-  - Sequence diagrams: justified by explicit handler logic for login, MCQ submission, theory queue/marking.
-
-- Omitted:
-  - CI/CD pipeline diagram: no CI/CD config was present in the visible repository structure.
-  - Deployment diagram beyond IIS/IIS Express mention: no infrastructure-as-code or deployment descriptors found.
-  - State machine diagram: no explicit state machine implementation found; the closest “state” is session variables, documented in the Session section.
-  - Queue/topic/event diagrams: no message queue or event bus integrations found; “queues” are SQL tables (`theoryCourseQueue`, `theoryQueue`).
-
-Task completed: Unified, code-derived repository documentation created with traceable file references, architecture diagrams, interfaces, configuration, data model, security behaviors, and run/test instructions.
