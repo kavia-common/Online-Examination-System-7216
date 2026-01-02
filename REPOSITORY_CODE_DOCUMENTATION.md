@@ -862,4 +862,3 @@ Evidence:
 ## Instructions for future agent
 
 If deeper data-model documentation is required (for example, listing every column type and constraint from the SQL script), the SQL script is currently stored in a form that was read as a binary/base64 blob by tooling. A future agent should decode and re-read `database-script/Online-Examination-System-Databse-Script.sql` as text (using an approach that preserves its original encoding) to extract the complete schema verbatim, then update the ER section accordingly.
-
