@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Online Examination System (ASP.NET Web Forms) — Code-Derived Repository Documentation</title>
+
+  <!-- GitHub-like base styling -->
+  <style>
+    :root {
+      --text: #1f2328;
+      --muted: #57606a;
+      --border: #d0d7de;
+      --bg: #ffffff;
+      --code-bg: #f6f8fa;
+      --link: #0969da;
+    }
+    html, body { background: var(--bg); color: var(--text); margin: 0; padding: 0; }
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"; line-height: 1.55; }
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 22px 60px; }
+    header { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    header h1 { margin: 0 0 6px; font-size: 28px; line-height: 1.25; }
+    header p { margin: 0; color: var(--muted); }
+
+    h1, h2, h3 { scroll-margin-top: 80px; }
+    h2 { margin-top: 34px; padding-top: 8px; border-top: 1px solid var(--border); }
+    h3 { margin-top: 22px; }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      overflow: auto;
+    }
+    code { font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+    pre code { font-size: 13px; }
+    :not(pre) > code {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.15em 0.35em;
+      font-size: 0.95em;
+    }
+
+    blockquote {
+      margin: 18px 0;
+      padding: 10px 14px;
+      border-left: 4px solid var(--border);
+      background: #fafbfc;
+      color: var(--muted);
+    }
+
+    table { border-collapse: collapse; width: 100%; margin: 14px 0; }
+    th, td { border: 1px solid var(--border); padding: 8px 10px; vertical-align: top; }
+    th { background: #f6f8fa; text-align: left; }
+
+    img { max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 6px; }
+
+    .mermaid {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      overflow-x: auto;
+    }
+
+    /* Print-friendly tweaks */
+    @media print {
+      main { max-width: none; padding: 0; }
+      header { border-bottom: none; }
+      a { color: inherit; text-decoration: none; }
+      pre, code { break-inside: avoid; }
+      .mermaid { break-inside: avoid; }
+    }
+  </style>
+
+  <!-- highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+
+  <!-- Mermaid for diagrams -->
+  <script defer src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (window.hljs) {
+        document.querySelectorAll("pre code").forEach((el) => window.hljs.highlightElement(el));
+      }
+      if (window.mermaid) {
+        window.mermaid.initialize({ startOnLoad: true, theme: "default" });
+      }
+    });
+  </script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Online Examination System (ASP.NET Web Forms) — Code-Derived Repository Documentation</h1>
+      <p>Exported from <code>REPOSITORY_CODE_DOCUMENTATION.md</code></p>
+    </header>
+
+    <h2>Scope and evidence policy</h2>
+    <p>This document describes the repository strictly based on code and configuration files present in the repo. Every behavioral statement is tied to a concrete file path and, where applicable, a symbol or method name. When the code is incomplete or contradictory, that is explicitly stated rather than inferred.</p>
+    <p>Primary implementation lives under <code>Online-Examination-System-7216/OnlineExamSystem/</code> as a classic ASP.NET Web Forms application targeting .NET Framework 4.8 (<code>Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj</code>).</p>
+
+    <h2>Project purpose and functional scope</h2>
+    <p>The repository implements an online examination system where:</p>
+    <ol>
+      <li>Students can register and log in.</li>
+      <li>Students can start and take MCQ and theory exams.</li>
+      <li>MCQ exams are auto-scored and results are stored; theory exams are submitted for later manual marking by an admin/teacher workflow.</li>
+      <li>Students can view a leaderboard and their profile.</li>
+    </ol>
+    <p>This scope is visible both in the high-level README (<code>Online-Examination-System-7216/README.md</code>) and in the concrete page-level code-behind implementation for login/registration/exams/queue/marking (for example: <code>LoginPage.aspx.cs</code>, <code>SignUpPage.aspx.cs</code>, <code>StartExam.aspx.cs</code>, <code>MCQExam.aspx.cs</code>, <code>TheoryExam.aspx.cs</code>, <code>ShowAns.aspx.cs</code>).</p>
+
+    <h2>Repository layout and main artifacts</h2>
+
+    <h3>Solution and project</h3>
+    <p>The repository contains one Visual Studio solution and one Web Forms project:</p>
+    <ul>
+      <li><code>Online-Examination-System-7216/OnlineExamSystem.sln</code></li>
+      <li><code>Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj</code></li>
+    </ul>
+    <p>The project is an ASP.NET Web Application project (ProjectTypeGuids includes the WebApplication GUID) with output type <code>Library</code> and target framework <code>v4.8</code> (<code>OnlineExamSystem.csproj</code>).</p>
+
+    <h3>Web Forms pages (UI + server-side logic)</h3>
+    <p>The application is implemented as multiple <code>.aspx</code> pages with code-behind <code>.aspx.cs</code> handlers. The <code>.csproj</code> enumerates the pages as <code>Content</code> and the code-behind as <code>Compile</code> items.</p>
+
+    <p>Notable pages with server-side logic (non-exhaustive; derived from <code>.csproj</code> and code reads):</p>
+    <ul>
+      <li><strong>Authentication &amp; entry</strong>:
+        <ul>
+          <li><code>Online-Examination-System-7216/OnlineExamSystem/LoginPage.aspx</code> and <code>LoginPage.aspx.cs</code></li>
+          <li><code>Online-Examination-System-7216/OnlineExamSystem/SignUpPage.aspx</code> and <code>SignUpPage.aspx.cs</code></li>
+        </ul>
+      </li>
+      <li><strong>Student features</strong>:
+        <ul>
+          <li><code>Dashboard.aspx</code> and <code>Dashboard.aspx.cs</code> (navigation only; see <code>.csproj</code>, not read in this task)</li>
+          <li><code>StartExam.aspx</code> and <code>StartExam.aspx.cs</code></li>
+          <li><code>MCQExam.aspx</code> and <code>MCQExam.aspx.cs</code></li>
+          <li><code>TheoryExam.aspx</code> and <code>TheoryExam.aspx.cs</code></li>
+          <li><code>ExamResult.aspx</code> and <code>ExamResult.aspx.cs</code></li>
+          <li><code>Leaderboard.aspx</code> and <code>Leaderboard.aspx.cs</code></li>
+          <li><code>UserProfile.aspx</code> and <code>UserProfile.aspx.cs</code></li>
+          <li><code>TakenCourses.aspx</code> and <code>TakenCourses.aspx.cs</code> (navigation only; not read in this task)</li>
+        </ul>
+      </li>
+      <li><strong>Admin/teacher features</strong>:
+        <ul>
+          <li><code>AdminPanel.aspx</code> and <code>AdminPanel.aspx.cs</code></li>
+          <li><code>SetExam.aspx</code> and <code>SetExam.aspx.cs</code> (navigation only; not read in this task)</li>
+          <li><code>MCQSet.aspx</code> and <code>MCQSet.aspx.cs</code> (admin creates MCQ questions/exams)</li>
+          <li><code>TheorySet.aspx</code> and <code>TheorySet.aspx.cs</code> (admin creates theory questions/exams)</li>
+          <li><code>AdminQueue.aspx</code> and <code>AdminQueue.aspx.cs</code> (admin selects course queue)</li>
+          <li><code>AdminCourseQueue.aspx</code> and <code>AdminCourseQueue.aspx.cs</code> (admin selects a student’s answer sheet to mark)</li>
+          <li><code>ShowAns.aspx</code> and <code>ShowAns.aspx.cs</code> (admin views answers and submits marks)</li>
+          <li><code>AdminLeaderboard.aspx</code> and <code>AdminLeaderboard.aspx.cs</code> (not read in this task; present in <code>.csproj</code>)</li>
+        </ul>
+      </li>
+      <li><strong>PDF page (currently no active behavior)</strong>:
+        <ul>
+          <li><code>DownloadPdf.aspx</code> and <code>DownloadPdf.aspx.cs</code> (code contains commented-out iTextSharp usage; currently does nothing)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <h3>Static assets and styling</h3>
+    <ul>
+      <li>Bootstrap CSS under <code>Online-Examination-System-7216/OnlineExamSystem/CSS/bootstrap.css</code> (Bootswatch “morph” theme per file header).</li>
+      <li>Images under <code>Online-Examination-System-7216/OnlineExamSystem/Images/</code> and <code>Online-Examination-System-7216/images/</code> (screenshots in root README).</li>
+    </ul>
+
+    <h3>Database scripts</h3>
+    <ul>
+      <li><code>Online-Examination-System-7216/database-script/Online-Examination-System-Databse-Script.sql</code> (SQL Server database setup script; provided as a binary/base64-encoded file in this environment view, but it is clearly a SQL Server schema script and includes table names that match the code’s SQL statements.)</li>
+      <li><code>Online-Examination-System-7216/database-script/README.md</code></li>
+    </ul>
+
+    <h2>Build system, dependencies, and runtime prerequisites</h2>
+
+    <h3>Target framework and compiler/runtime config</h3>
+    <ul>
+      <li>The application targets <code>.NET Framework 4.8</code> (<code>TargetFrameworkVersion</code> in <code>OnlineExamSystem.csproj</code>).</li>
+      <li>Web compilation is configured in <code>Web.config</code>:
+        <ul>
+          <li><code>&lt;compilation debug="true" targetFramework="4.8"/&gt;</code></li>
+          <li><code>&lt;httpRuntime targetFramework="4.5.2"/&gt;</code></li>
+        </ul>
+      </li>
+    </ul>
+    <p>The <code>system.codedom</code> section configures Roslyn CodeDom providers for C# and VB via <code>Microsoft.CodeDom.Providers.DotNetCompilerPlatform</code> (1.0.0.0) in <code>Web.config</code>.</p>
+
+    <h3>NuGet packages</h3>
+    <p>Packages are declared in <code>Online-Examination-System-7216/OnlineExamSystem/packages.config</code>:</p>
+    <ul>
+      <li><code>Microsoft.CodeDom.Providers.DotNetCompilerPlatform</code> version <code>1.0.0</code> (<code>targetFramework="net452"</code>)</li>
+      <li><code>Microsoft.Net.Compilers</code> version <code>1.0.0</code> (<code>developmentDependency="true"</code>)</li>
+    </ul>
+    <p>The <code>.csproj</code> imports these packages from the <code>packages/</code> folder and will fail the build if the packages are missing (<code>EnsureNuGetPackageBuildImports</code> target in <code>OnlineExamSystem.csproj</code>). The repo includes a <code>packages/</code> directory with those packages.</p>
+
+    <h3>Other referenced assemblies</h3>
+    <p>The <code>.csproj</code> references include:</p>
+    <ul>
+      <li><code>CrystalDecisions.Web, Version=13.0.4000.0</code> (no hint path in project file; runtime availability depends on environment)</li>
+      <li>Standard .NET assemblies: <code>System.Web</code>, <code>System.Data</code>, <code>System.Configuration</code>, etc.</li>
+    </ul>
+    <p>Evidence: <code>Online-Examination-System-7216/OnlineExamSystem/OnlineExamSystem.csproj</code> <code>&lt;Reference&gt;</code> items.</p>
+
+    <h2>Configuration model</h2>
+
+    <h3>web.config</h3>
+    <p><code>Online-Examination-System-7216/OnlineExamSystem/Web.config</code> contains:</p>
+    <ul>
+      <li><code>system.web</code> compilation/runtime framework settings</li>
+      <li><code>system.codedom</code> compiler provider settings</li>
+      <li><code>connectionStrings</code>:</li>
+    </ul>
+
+    <pre><code class="language-xml">&lt;connectionStrings&gt;
+  &lt;add name="dbconnection" connectionString="your-database-connection-string"/&gt;
+  &lt;add name="OnlineExamConnectionString" connectionString="your-database-connection-string" providerName="System.Data.SqlClient"/&gt;
+&lt;/connectionStrings&gt;
+</code></pre>
+
+    <p>However, the code-behind files largely do <strong>not</strong> use <code>ConfigurationManager.ConnectionStrings[...]</code> or <code>WebConfigurationManager.ConnectionStrings[...]</code>. Instead, many pages hardcode a string literal:</p>
+    <p><code>"your-database-connection-string"</code> appears repeatedly in:</p>
+    <ul>
+      <li><code>LoginPage.aspx.cs</code></li>
+      <li><code>SignUpPage.aspx.cs</code></li>
+      <li><code>StartExam.aspx.cs</code></li>
+      <li><code>MCQExam.aspx.cs</code></li>
+      <li><code>TheoryExam.aspx.cs</code></li>
+      <li><code>ExamResult.aspx.cs</code></li>
+      <li><code>ShowAns.aspx.cs</code></li>
+      <li><code>MCQSet.aspx.cs</code></li>
+      <li><code>TheorySet.aspx.cs</code></li>
+      <li><code>AdminCourseQueue.aspx.cs</code></li>
+      <li><code>Leaderboard.aspx.cs</code></li>
+    </ul>
+
+    <p>One notable exception is <code>UserProfile.aspx.cs</code>, which hardcodes a concrete SQL Server connection string including host, database, username and password:</p>
+
+    <pre><code class="language-csharp">string CS = "Data Source=DESKTOP-JT5TE1G\\SQLEXPRESS;Initial Catalog=OnlineExam;Persist Security Info=True;User ID=sa;Password=369@saikat";
+</code></pre>
+
+    <p>Evidence: <code>Online-Examination-System-7216/OnlineExamSystem/UserProfile.aspx.cs</code> in <code>Page_Load</code>.</p>
+
+    <h3>Environment variables</h3>
+    <p>No <code>.env</code> is provided for this container per task metadata, and no code evidence was found in read files for <code>Environment.GetEnvironmentVariable</code> usage. Therefore, configuration appears to be expected via editing connection string literals and/or <code>Web.config</code>.</p>
+
+    <h3>Build configuration transforms</h3>
+    <p>Transform templates exist:</p>
+    <ul>
+      <li><code>Online-Examination-System-7216/OnlineExamSystem/Web.Debug.config</code></li>
+      <li><code>Online-Examination-System-7216/OnlineExamSystem/Web.Release.config</code></li>
+    </ul>
+
+    <p>Both are stock transform examples; <code>Web.Release.config</code> removes the <code>debug</code> attribute from <code>&lt;compilation&gt;</code>, but neither defines any actual connection string transformations in this repository version.</p>
+
+    <h2>Runtime architecture (derived from code)</h2>
+
+    <h3>System context</h3>
+    <p>The system is a monolithic web application serving HTML pages (Web Forms) to browsers and interacting with a SQL Server database via ADO.NET <code>System.Data.SqlClient</code> from code-behind.</p>
+
+    <h4>Context diagram (derived from *.aspx.cs DB usage and Web.config provider)</h4>
+    <div class="mermaid">
+flowchart LR
+  U["User (Student or Teacher/Admin)"] -->|HTTP(S) requests| W["ASP.NET Web Forms app (OnlineExamSystem)"]
+  W -->|ADO.NET System.Data.SqlClient| DB["SQL Server database (OnlineExam)"]
+    </div>
+
+    <p><strong>Derivation notes:</strong><br />
+      The web app is the <code>OnlineExamSystem</code> project (<code>OnlineExamSystem.csproj</code>) and uses <code>SqlConnection</code>, <code>SqlCommand</code>, <code>SqlDataAdapter</code>, <code>SqlDataReader</code> across multiple pages (for example <code>LoginPage.aspx.cs</code>, <code>StartExam.aspx.cs</code>, <code>MCQExam.aspx.cs</code>, <code>TheoryExam.aspx.cs</code>, <code>ShowAns.aspx.cs</code>). The database is SQL Server because the provider is <code>System.Data.SqlClient</code> in <code>Web.config</code> and the code uses <code>System.Data.SqlClient</code>.</p>
+
+    <h3>Container/component diagram (page-centric components)</h3>
+    <p>Because this is Web Forms, the main “components” are pages with code-behind methods that implement actions and transitions via <code>Server.Transfer(...)</code>.</p>
+
+    <div class="mermaid">
+flowchart TB
+  subgraph Web["OnlineExamSystem (ASP.NET Web Forms)"]
+    LP["LoginPage.aspx (+ LoginPage.aspx.cs)"]
+    SU["SignUpPage.aspx (+ SignUpPage.aspx.cs)"]
+    DBR["Dashboard.aspx (+ Dashboard.aspx.cs)"]
+    SE["StartExam.aspx (+ StartExam.aspx.cs)"]
+    ME["MCQExam.aspx (+ MCQExam.aspx.cs)"]
+    TE["TheoryExam.aspx (+ TheoryExam.aspx.cs)"]
+    ER["ExamResult.aspx (+ ExamResult.aspx.cs)"]
+    LB["Leaderboard.aspx (+ Leaderboard.aspx.cs)"]
+    UP["UserProfile.aspx (+ UserProfile.aspx.cs)"]
+
+    AP["AdminPanel.aspx (+ AdminPanel.aspx.cs)"]
+    MS["MCQSet.aspx (+ MCQSet.aspx.cs)"]
+    TS["TheorySet.aspx (+ TheorySet.aspx.cs)"]
+    AQ["AdminQueue.aspx (+ AdminQueue.aspx.cs)"]
+    ACQ["AdminCourseQueue.aspx (+ AdminCourseQueue.aspx.cs)"]
+    SA["ShowAns.aspx (+ ShowAns.aspx.cs)"]
+  end
+
+  DBX["SQL Server DB"]:::db
+
+  LP -->|Server.Transfer| SU
+  LP -->|Server.Transfer| DBR
+  LP -->|Server.Transfer| AP
+
+  SE -->|Server.Transfer| TE
+  SE -->|Server.Transfer| ME
+
+  ME -->|Server.Transfer| ER
+
+  AQ -->|Server.Transfer| ACQ
+  ACQ -->|Server.Transfer| SA
+
+  classDef db fill:#f6f6f6,stroke:#333,stroke-width:1px;
+    </div>
+
+    <p><strong>Derivation notes:</strong><br />
+      Transfers are explicitly present in code-behind handlers:</p>
+    <ul>
+      <li><code>LoginPage.signupB</code> transfers to <code>SignUpPage.aspx</code> (<code>LoginPage.aspx.cs</code>).</li>
+      <li><code>LoginPage.loginButton_Click</code> transfers to <code>Dashboard.aspx</code> (student) or <code>AdminPanel.aspx</code> (teacher/admin hardcoded) (<code>LoginPage.aspx.cs</code>).</li>
+      <li><code>StartExam.GridView1_SelectedIndexChanged</code> transfers to <code>TheoryExam.aspx</code>; <code>GridView2_SelectedIndexChanged</code> transfers to <code>MCQExam.aspx</code> (<code>StartExam.aspx.cs</code>).</li>
+      <li><code>MCQExam.submitB_Click</code> transfers to <code>ExamResult.aspx</code> (<code>MCQExam.aspx.cs</code>).</li>
+      <li><code>AdminQueue.aspx.cs</code> transfers to <code>AdminCourseQueue.aspx</code> via <code>GridView2_SelectedIndexChanged</code>.</li>
+      <li><code>AdminCourseQueue.aspx.cs</code> transfers to <code>ShowAns.aspx</code> via <code>GridView1_SelectedIndexChanged</code>.</li>
+    </ul>
+
+    <h3>Database interaction style</h3>
+    <p>The data access is implemented directly in page code-behind using dynamic SQL strings with concatenation and <code>SqlCommand</code>. There is no repository/ORM layer in the files inspected.</p>
+    <p>Evidence examples:</p>
+    <ul>
+      <li><code>new SqlCommand("select count(*) from userInfo where id ='" + userTextBox.Text + "' ...", con);</code> in <code>LoginPage.loginButton_Click</code>.</li>
+      <li>Many <code>insert into ... VALUES('" + value +"', ...)</code> in <code>SignUpPage.signUpB_Click</code>, <code>MCQSet.AddQB_Click</code>, <code>TheoryExam.submitB_Click</code>, <code>MCQExam.submitB_Click</code>, etc.</li>
+    </ul>
+
+    <h2>Data model (derived from code SQL statements and DB script table names)</h2>
+    <p>The schema file is present at <code>Online-Examination-System-7216/database-script/Online-Examination-System-Databse-Script.sql</code> and appears to define tables referenced in the code. Even without decoding the full script text here, the table/column usage is unambiguous from the application SQL statements.</p>
+
+    <h3>Tables referenced by the application</h3>
+    <p>From explicit SQL strings in code-behind:</p>
+    <ul>
+      <li><code>userInfo</code></li>
+      <li><code>mcqQS</code> (MCQ questions)</li>
+      <li><code>mcqCourseDetail</code> (MCQ exams per course)</li>
+      <li><code>mcqTaken</code> (MCQ submissions/results)</li>
+      <li><code>theoryQS</code> (theory questions)</li>
+      <li><code>theoryCourseDetail</code> (theory exams per course)</li>
+      <li><code>theoryAns</code> (theory answer sheets)</li>
+      <li><code>theoryTaken</code> (theory attempt record)</li>
+      <li><code>theoryCourseQueue</code> (queue of students awaiting marking for a course)</li>
+      <li><code>theoryQueue</code> (admin-level queue per course)</li>
+    </ul>
+
+    <h3>Entity-relationship sketch (inferred only from observed FK-like fields)</h3>
+    <p>No explicit foreign keys were observed in code; the relationships below reflect how IDs are used in SQL statements.</p>
+
+    <div class="mermaid">
+erDiagram
+  USERINFO {
+    varchar id PK
+    varchar password
+    varchar semester
+    int no_of_exam
+    float total_mark
+    varchar abc
+  }
+
+  MCQQS {
+    int id PK
+    varchar course
+    varchar qsNo
+    varchar qs
+    varchar ans
+    varchar tag
+    varchar eTime
+  }
+
+  MCQTAKEN {
+    varchar studentID
+    varchar courseID
+    varchar examNo
+    numeric mark
+  }
+
+  THEORYQS {
+    int id PK
+    varchar course
+    varchar qsNo
+    varchar qsA
+    numeric markA
+    varchar qsB
+    numeric markB
+    varchar eTime
+  }
+
+  THEORYANS {
+    varchar studentID
+    varchar courseID
+    varchar qsNo
+    varchar ansA
+    varchar ansB
+    numeric mark
+    varchar isAprove
+  }
+
+  THEORYTAKEN {
+    varchar studentID
+    varchar courseID
+    varchar examNo
+  }
+
+  USERINFO ||--o{ MCQTAKEN : "studentID -> id"
+  USERINFO ||--o{ THEORYANS : "studentID -> id"
+  USERINFO ||--o{ THEORYTAKEN : "studentID -> id"
+    </div>
+
+    <p><strong>Derivation notes:</strong><br />
+      This diagram is derived from the identifier fields used in insert/select statements in <code>MCQExam.aspx.cs</code>, <code>StartExam.aspx.cs</code>, <code>TheoryExam.aspx.cs</code>, and <code>ShowAns.aspx.cs</code>.</p>
+
+    <h2>Public interfaces (as implemented)</h2>
+    <p>This application exposes page-based HTTP endpoints (Web Forms). There is no evidence of Web API controllers in the inspected files; thus “public interface” is the set of <code>.aspx</code> pages and their server-side event handlers.</p>
+
+    <h2>Critical runtime flows (sequence diagrams)</h2>
+
+    <h3>Student login flow</h3>
+    <p>Derived from <code>OnlineExamSystem/LoginPage.aspx.cs</code> <code>loginButton_Click</code>.</p>
+
+    <div class="mermaid">
+sequenceDiagram
+  participant Browser as "Browser"
+  participant Login as "LoginPage.aspx.cs (loginButton_Click)"
+  participant DB as "SQL Server (userInfo)"
+
+  Browser->>Login: "POST login form"
+  alt "AccountTypeDB == Student"
+    Login->>DB: "SELECT COUNT(*) FROM userInfo WHERE id=... AND password=..."
+    DB-->>Login: "count"
+    alt "count == 1"
+      Login->>Login: "Session['_ID'] = userTextBox.Text"
+      Login-->>Browser: "Server.Transfer('Dashboard.aspx')"
+    else "count != 1"
+      Login-->>Browser: "Response.Write(alert)"
+    end
+  else "AccountTypeDB == Teacher"
+    alt "userTextBox == Admin AND passTextBox == Admin"
+      Login-->>Browser: "Server.Transfer('AdminPanel.aspx')"
+    else
+      Login-->>Browser: "Response.Write(alert)"
+    end
+  end
+    </div>
+
+    <h3>MCQ exam submission and scoring</h3>
+    <p>Derived from <code>MCQExam.aspx.cs</code> <code>submitB_Click</code> and <code>ExamResult.aspx.cs</code> <code>Page_Load</code>.</p>
+
+    <div class="mermaid">
+sequenceDiagram
+  participant Browser as "Browser"
+  participant MCQ as "MCQExam.aspx.cs"
+  participant DB as "SQL Server (mcqTaken, userInfo)"
+  participant Result as "ExamResult.aspx.cs"
+
+  Browser->>MCQ: "Click Submit"
+  MCQ->>MCQ: "Compare selected answers vs Session['_ans1'..'_ans5']"
+  MCQ->>MCQ: "Session['_tMark'] = mark"
+  MCQ->>DB: "INSERT INTO mcqTaken(studentID,courseID,examNo,mark) VALUES(...,'1',mark)"
+  MCQ-->>Browser: "Server.Transfer('ExamResult.aspx')"
+  Browser->>Result: "Load ExamResult.aspx"
+  Result->>DB: "SELECT * FROM userInfo WHERE id=Session['_ID']"
+  Result->>DB: "UPDATE userInfo SET no_of_exam=..., total_mark=..., abc=... WHERE id=..."
+  Result-->>Browser: "Render mark + questions/tags/answers from Session"
+    </div>
+
+    <h3>Theory exam submission to admin queue</h3>
+    <p>Derived from <code>TheoryExam.aspx.cs</code> <code>submitB_Click</code> and admin queue pages.</p>
+
+    <div class="mermaid">
+sequenceDiagram
+  participant Browser as "Browser"
+  participant Theory as "TheoryExam.aspx.cs"
+  participant DB as "SQL Server (theoryAns, theoryCourseQueue, theoryQueue, theoryTaken)"
+  participant AdminQueue as "AdminCourseQueue.aspx.cs"
+  participant Show as "ShowAns.aspx.cs"
+
+  Browser->>Theory: "Click Submit"
+  Theory->>DB: "INSERT 5 rows into theoryAns (qsNo 1..5, isAprove='No')"
+  Theory->>DB: "INSERT INTO theoryCourseQueue(student_ID, courseID)"
+  Theory->>DB: "INSERT INTO theoryQueue(courseID, courseName)"
+  Theory->>DB: "INSERT INTO theoryTaken(studentID, courseID, examNo) VALUES(...,'1')"
+  Theory-->>Browser: "Server.Transfer('Dashboard.aspx')"
+
+  Note over AdminQueue,Show: "Admin selects course and student via GridViews"
+  AdminQueue->>Show: "Server.Transfer('ShowAns.aspx') with Session['_stID'], Session['_crsID']"
+    </div>
+
+    <h2>Session state and key session variables</h2>
+    <p>The application relies heavily on ASP.NET Session state to carry identity and exam context. Session keys used include <code>_ID</code>, <code>_Course</code>, question/answer/tag keys for MCQ, and various admin selection keys; these are evidenced by direct reads/writes in the application’s <code>.aspx.cs</code> files.</p>
+
+    <h2>Security behaviors and risks (strictly code-derived)</h2>
+    <p>Authentication and authorization are implemented directly in page code-behind with a DB-backed student login and hardcoded admin credentials. SQL queries are built by string concatenation in many places, which is vulnerable to SQL injection. Connection strings are hardcoded in multiple files, and one file includes a plaintext SQL password in source.</p>
+
+    <h2>Operational behaviors and edge cases observed in code</h2>
+    <p>The code includes session-based timing, inconsistent exam numbering, and a marking-total overwrite bug in <code>ShowAns.aspx.cs</code>. These are documented as direct observations from the current source.</p>
+
+    <h2>Important code snippets (annotated)</h2>
+
+    <h3>Student login query and session establishment</h3>
+    <p><strong>File:</strong> <code>Online-Examination-System-7216/OnlineExamSystem/LoginPage.aspx.cs</code><br />
+       <strong>Symbol:</strong> <code>loginButton_Click(object sender, EventArgs e)</code></p>
+
+    <pre><code class="language-csharp">SqlCommand cmd = new SqlCommand(
+  "select count(*) from userInfo where id ='"
+  + userTextBox.Text
+  + "' and password='"
+  + passTextBox.Text
+  + "' ", con);
+
+...
+if (dt.Rows[0][0].ToString() == "1")
+{
+  Session["_ID"] = userTextBox.Text;
+  Server.Transfer("Dashboard.aspx", true);
+}
+</code></pre>
+
+    <h3>Registration saving uploaded image and inserting userInfo row</h3>
+    <p><strong>File:</strong> <code>Online-Examination-System-7216/OnlineExamSystem/SignUpPage.aspx.cs</code><br />
+       <strong>Symbol:</strong> <code>signUpB_Click(object sender, EventArgs e)</code></p>
+
+    <pre><code class="language-csharp">FileUpload1.SaveAs(Server.MapPath("~/Images/") + Path.GetFileName(FileUpload1.FileName));
+string link = "Images/" + Path.GetFileName(FileUpload1.FileName);
+
+string newcon =
+  "insert into userInfo (id,name,department,email,semester,gender,password,fatherName,hall,image,no_of_exam,total_mark) " +
+  "VALUES('" + idTxBox.Text + "', '" + nameTxBox.Text + "', ... , '" + link + "', '" + nEx + "', '" + tM + "')";
+</code></pre>
+
+    <h3>MCQ scoring and persistence</h3>
+    <p><strong>File:</strong> <code>Online-Examination-System-7216/OnlineExamSystem/MCQExam.aspx.cs</code><br />
+       <strong>Symbol:</strong> <code>submitB_Click(object sender, EventArgs e)</code></p>
+
+    <pre><code class="language-csharp">int mark = 0;
+if (RadioButtonList1.SelectedIndex > -1 && RadioButtonList1.SelectedItem.Text == a1) { mark++; }
+// ... repeated for 2..5
+Session["_tMark"] = mark;
+
+string newcon =
+  "insert into mcqTaken (studentID,courseID,examNo,mark) VALUES('"
+  + sNo + "','" + crsNo + "', '" + "1" + "', '" + M + "')";
+</code></pre>
+
+    <h3>Theory submission creates answer rows and queues</h3>
+    <p><strong>File:</strong> <code>Online-Examination-System-7216/OnlineExamSystem/TheoryExam.aspx.cs</code><br />
+       <strong>Symbol:</strong> <code>submitB_Click(object sender, EventArgs e)</code></p>
+
+    <pre><code class="language-csharp">string newcon =
+  "insert into theoryAns (studentID,courseID,qsNo,qsA,ansA,markA,isAprove,qsB,markB,ansB) VALUES('"
+  + stID + "', '" + crsID + "', '" + "1" + "', '" + qs1A.Text + "', '" + ans1ATB.Text + "', '" + m1A.Text + "','" + "No"
+  + "', '" + qs1B.Text + "', '" + m1B.Text + "' ,'" + ans1BTB.Text + "')";
+
+...
+newcon = "insert into theoryCourseQueue (student_ID,courseID) VALUES('" + stID + "', '" + crsID + "')";
+...
+newcon = "insert into theoryQueue (courseID, courseName) VALUES('" + crsID + "', '" + courseNAME + "')";
+...
+newcon = "insert into theoryTaken (studentID,courseID,examNo) VALUES('" + sNo + "','" + crsNo + "', '" + eN + "')";
+</code></pre>
+
+    <h3>Admin marking updates approval and removes from queue</h3>
+    <p><strong>File:</strong> <code>Online-Examination-System-7216/OnlineExamSystem/ShowAns.aspx.cs</code><br />
+       <strong>Symbol:</strong> <code>submitB_Click(object sender, EventArgs e)</code></p>
+
+    <pre><code class="language-csharp">string newcon =
+  "update theoryAns set mark='" + total + "', isAprove='" + "Yes"
+  + "' where studentID='" + sID + "' and courseID='" + cID + "';";
+
+string newcon1 =
+  "delete from theoryCourseQueue where student_ID='" + sID + "' and courseID='" + cID + "';";
+</code></pre>
+
+    <h2>CI/CD and deployment evidence</h2>
+    <p>No GitHub Actions workflows or other CI/CD configuration files were provided in the repository tree snapshot for this task. Therefore, no CI/CD pipeline diagram is included.</p>
+    <p>Deployment artifacts are typical for ASP.NET Web Forms: the project is designed to run under IIS/IIS Express. The <code>.csproj</code> includes IIS Express properties and an IISUrl for local dev (<code>http://localhost:55618/</code>), which suggests Visual Studio local hosting.</p>
+
+    <h2>How to run locally (derived from repo contents)</h2>
+    <p>The project targets .NET Framework 4.8 and uses SQL Server via ADO.NET. Local running typically involves opening the solution in Visual Studio, configuring the database script, and updating the hardcoded connection strings in code-behind files and/or <code>Web.config</code>.</p>
+
+    <h2>How to test (derived from repo contents)</h2>
+    <p>No automated test projects were found. Testing is therefore manual and page-driven, based on registration, login, MCQ flow, theory submission, and admin marking flows.</p>
+
+    <h2>Known inconsistencies and likely runtime issues (observed in code)</h2>
+    <p>Several runtime issues are directly visible in code, including a session key casing mismatch (<code>_qNO</code> vs <code>_qNo</code>), unsafe session null checks in <code>TheoryExam</code>, exam numbering inconsistencies, and a theory marking total overwrite.</p>
+
+    <h2>Diagram applicability checklist (what is included and why)</h2>
+    <p>The diagrams included here are those that can be directly justified by code evidence (system/context, page/component, and key sequence flows). CI/CD and infrastructure-level deployment diagrams are omitted due to lack of repository evidence.</p>
+
+    <p><strong>Task completed:</strong> HTML export produced with Mermaid rendering and syntax highlighting support.</p>
+  </main>
+</body>
+</html>
